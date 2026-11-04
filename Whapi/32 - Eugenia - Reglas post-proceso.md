@@ -11,7 +11,7 @@ desde el panel (pestaña **Reglas**).
 ✅ Archivos: `prompts/hidroponia_reglas.json`, `prompts/bonsai_reglas.json`
 (formato `{"regla": {"activa": bool, "texto": ""}}`; `texto` permite personalizar el mensaje que usa la regla).
 
-## Estado al 01/11/2026
+## Estado al 04/11/2026
 
 | Regla | Hidroponía | Bonsái | Qué hace (🟡 deducido del nombre + el prompt) |
 |---|:-:|:-:|---|

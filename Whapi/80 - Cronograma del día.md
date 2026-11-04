@@ -9,7 +9,7 @@ tags: [whapi, operacion, horarios]
 | Todo el día | | **Eugenia contesta cada mensaje** en segundos | Worker (webhook) | 🟡 |
 | Cada 10 min | | Cron del Worker: cola de Instagram (`queue/<fecha>.json`, `publish_at`) y stock | Worker | ✅ |
 | 01:00 | 04:00 | Catalogar fuentes de TikTok | GitHub `fuentes.yml` | ✅ |
-| 02:00 | 05:00 | Producir reels (3/día/nicho, hasta 20 en stock) | GitHub `producir.yml` | ✅ |
+| 02:00 | 05:00 | Producir reels (cupo repartido al nicho con menos stock, hasta 20 en stock) | GitHub `producir.yml` | ✅ |
 | ~02:30 | ~05:30 | Subir a YouTube lo ya publicado (`subir_youtube_nube.py`) | GitHub `producir.yml` | ✅ |
 | 06:00 | 09:00 | Publicación del stock (hora 1 por defecto) | Worker | ✅ (`toggles.HORAS_DEFAULT`) |
 | 07:00 | 10:00 | Descubrir carritos abandonados → `/ingest` | GitHub `carritos.yml` | ✅ |

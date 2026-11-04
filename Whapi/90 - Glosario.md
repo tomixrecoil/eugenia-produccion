@@ -20,9 +20,10 @@ tags: [whapi, glosario]
 | **Worker** | Función serverless de Cloudflare (JS) que corre en el borde, 24/7 |
 | **R2** | Almacenamiento de objetos de Cloudflare (bucket `marketing-reels`) |
 | **wrangler** | CLI de Cloudflare para desplegar Workers y manejar R2/secretos |
-| **Puerta R2** | Worker `eugenia-puerta-r2`: acceso limitado a R2 para GitHub |
+| **Puerta R2** | Worker `eugenia-puerta-r2`: acceso limitado a R2 para GitHub (y `/whisper`) |
+| **Bóveda** | `panel/boveda_produccion.json`: credenciales cifradas en R2 para la producción en la nube |
 | **Groq** | Proveedor de inferencia LLM rápido (API compatible con OpenAI) |
-| **Reglas post** | Correcciones por código a la respuesta del LLM antes de enviarla |
+| **Reglas post / ctx** | Correcciones por código a la respuesta del LLM (`post_*`) o contexto que se le agrega antes (`ctx_*`) |
 | **`[SITUACIÓN]`** | Bloque dinámico que el Worker agrega al prompt según el momento de la charla |
 | **sck** | Parámetro de Hotmart para atribuir el origen de una venta (`wa-…`, `ig-r-…`, `fb-r-…`) |
 | **hottok** | Token que Hotmart manda en sus webhooks para validar que son legítimos |

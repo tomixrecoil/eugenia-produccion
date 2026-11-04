@@ -19,10 +19,10 @@ flowchart LR
 | Paso | Detalle |
 |---|---|
 | Fuentes | Videos de TikTok catalogados (`fuentes_nube.py`, `catalogar_fuente.py`); Gemini revisa |
-| Producción | `produccion_nube.py`: 3 por día y nicho hasta 20 en stock; voz Antonio (ElevenLabs, 5 cuentas) → Charon (Google) → voz gratis; subtítulos karaoke; logo y mockup |
+| Producción | `produccion_nube.py`: cupo diario repartido entre nichos (ver "Reparto"), hasta 20 en stock; voz Antonio (ElevenLabs, 5 cuentas) → Charon (Google) → voz gratis; logo y mockup |
 | Copy | Gemini + bloque de oferta fijo + "💬 Comenta CULTIVO/BONSAI y te mando el link por privado 📩" |
 | Stock | `armar_stock.agregar()` sube `reels/<id>.mp4` + fila en `stock/index.json` |
-| Publicación | Worker: a las horas de `state/toggles.json` (default 6 y 18 ART) si `encolado` está prendido; o la PC con `publisher.publicar_reel` (FB con botón WA, IG directo o encolado, YouTube) |
+| Publicación | Worker (`publicarDeStock`): a las horas de `state/toggles.json` (default 6 y 18 ART) si `encolado` está prendido, solo en las redes con `fb`/`ig` prendidos; o la PC con `publisher.publicar_reel` (FB con botón WA, IG directo o encolado, YouTube) |
 | Aviso | `notify.whatsapp` → WhatsApp de Tomix |
 | Reparto (02/11) | `produccion_nube.repartir`: los cupos del día van primero al nicho con **menos** stock, máx. 5 por nicho y hasta 20 en stock |
 | Voz y subtítulos (02–04/11) | Se eliminó la prueba A/B (sistema A/B). Subtítulos estilo "viral #1": 1 palabra por pantalla, Baloo 2 ExtraBold 234 px, color `00EEFF`, minúsculas. Sincronía por palabra con **Whisper de Cloudflare** (`/whisper` de la puerta) |

@@ -7,7 +7,7 @@ tags: [whapi, seguridad, politicas]
 ## Lo que el sistema ya hace bien (✅)
 
 - **Mínimo privilegio en R2**: GitHub solo entra por la puerta; `/v/` solo sirve `reels/*.mp4`; los datos de clientes (`wa/`) quedan fuera.
-- **Credenciales fuera del código**: `.env` con backups, secretos del Worker, secretos de GitHub; el repo exportado no tiene datos de clientes ni claves.
+- **Credenciales fuera del código**: `.env` con backups, bóveda cifrada en R2, secretos del Worker, secretos de GitHub; el repo exportado no tiene datos de clientes ni claves.
 - **Anti-fraude de cobro** en el prompt: Eugenia no repite datos de cobro "nuevos" que alguien le pegue.
 - **Anti-invención**: no promete lo que no está en "QUÉ INCLUYE" (evita reembolsos/contracargos).
 - **Sin urgencias falsas** ni cupos inventados; **respeto ante hardship** genuino.

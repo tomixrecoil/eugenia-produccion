@@ -266,7 +266,7 @@ export nuevo de `eugenia-produccion` del 04/11/2026 (commits `167545e` y `7c0001
 > Notion ([página Whapi](https://app.notion.com/p/40b5314feb14811998b6f2efd27d4640) + memoria
 > [Whapi](https://app.notion.com/p/40b5314feb1481b089f9e599a56752a4)) y Google Drive
 > ([carpeta Whapi](https://drive.google.com/drive/folders/1PxsigA6ZAx83L9TqKoM9Gs-m4F65mrA0) →
-> "Whapi - Resumen, pipeline y guía para replicar"). En cada repo: `CLAUDE.md` + skill `.claude/skills/whapi/`.
+> "Whapi - Resumen, pipeline y guía para replicar" + "Whapi - Documento completo - Parte 1..4"). En cada repo: `CLAUDE.md` + skill `.claude/skills/whapi/`.
 
 ## Qué es
 
@@ -1164,7 +1164,7 @@ desde el panel (pestaña **Reglas**).
 ✅ Archivos: `prompts/hidroponia_reglas.json`, `prompts/bonsai_reglas.json`
 (formato `{"regla": {"activa": bool, "texto": ""}}`; `texto` permite personalizar el mensaje que usa la regla).
 
-## Estado al 01/11/2026
+## Estado al 04/11/2026
 
 | Regla | Hidroponía | Bonsái | Qué hace (🟡 deducido del nombre + el prompt) |
 |---|:-:|:-:|---|
@@ -1684,10 +1684,10 @@ flowchart LR
 | Paso | Detalle |
 |---|---|
 | Fuentes | Videos de TikTok catalogados (`fuentes_nube.py`, `catalogar_fuente.py`); Gemini revisa |
-| Producción | `produccion_nube.py`: 3 por día y nicho hasta 20 en stock; voz Antonio (ElevenLabs, 5 cuentas) → Charon (Google) → voz gratis; subtítulos karaoke; logo y mockup |
+| Producción | `produccion_nube.py`: cupo diario repartido entre nichos (ver "Reparto"), hasta 20 en stock; voz Antonio (ElevenLabs, 5 cuentas) → Charon (Google) → voz gratis; logo y mockup |
 | Copy | Gemini + bloque de oferta fijo + "💬 Comenta CULTIVO/BONSAI y te mando el link por privado 📩" |
 | Stock | `armar_stock.agregar()` sube `reels/<id>.mp4` + fila en `stock/index.json` |
-| Publicación | Worker: a las horas de `state/toggles.json` (default 6 y 18 ART) si `encolado` está prendido; o la PC con `publisher.publicar_reel` (FB con botón WA, IG directo o encolado, YouTube) |
+| Publicación | Worker (`publicarDeStock`): a las horas de `state/toggles.json` (default 6 y 18 ART) si `encolado` está prendido, solo en las redes con `fb`/`ig` prendidos; o la PC con `publisher.publicar_reel` (FB con botón WA, IG directo o encolado, YouTube) |
 | Aviso | `notify.whatsapp` → WhatsApp de Tomix |
 | Reparto (02/11) | `produccion_nube.repartir`: los cupos del día van primero al nicho con **menos** stock, máx. 5 por nicho y hasta 20 en stock |
 | Voz y subtítulos (02–04/11) | Se eliminó la prueba A/B (sistema A/B). Subtítulos estilo "viral #1": 1 palabra por pantalla, Baloo 2 ExtraBold 234 px, color `00EEFF`, minúsculas. Sincronía por palabra con **Whisper de Cloudflare** (`/whisper` de la puerta) |
@@ -1709,15 +1709,15 @@ no disponible en GitHub). Todo lo que sigue sale de referencias en el código �
 | Sección | Qué se hace | Evidencia |
 |---|---|---|
 | **Nicho** / Ajustes → *Mi producto* | Fuentes, link de venta con switch **landing ↔ checkout**, nombre de producto y negocio, % de descuento, publicación, horarios | `config.py:108-132,732-737` |
-| **Credenciales** | Editar el `.env` (tokens WhatsApp, Kontrol, Groq, Hotmart, cobro AR…). Botón "+" para sumar cuentas Gemini/ElevenLabs. Escribe con `write_env` (fusión + backup + atómico) | `config.py:784-944` |
+| **Credenciales** | Editar el `.env` (tokens WhatsApp, Kontrol, Groq, Hotmart, cobro AR…). Botón "+" para sumar cuentas Gemini/ElevenLabs/YouTube. Desde el 02/11 también alimenta la bóveda cifrada de R2, y guardar un nicho lo sube a `state/nichos/`. Escribe con `write_env` (fusión + backup + atómico) | `config.py:784-944` |
 | **Prompts** → nicho | Editar `venta_<nicho>.txt` (Eugenia), "Descripción del producto" (`{{QUE_INCLUYE}}`), prompts de voz y copy | `venta_*.txt:76` |
-| **Reglas** | Prender/apagar `post_*` por nicho (`<nicho>_reglas.json`) | [[32 - Eugenia - Reglas post-proceso]] |
-| **Subtítulos** | Mapa palabra=emoji, karaoke, pop-in, colores | `config.py:45-47,165-171` |
+| **Reglas** | Prender/apagar `post_*` y `ctx_*` por nicho (`<nicho>_reglas.json`) | [[32 - Eugenia - Reglas post-proceso]] |
+| **Subtítulos** | Mapa palabra=emoji, karaoke, pop-in, colores, palabras por pantalla, color fijo, minúsculas (02/11) | `config.py:45-47,165-171` |
 | **Salud** | Latidos (`state/*_heartbeat.json`: >3 min amarillo, >10 gris), estado de lo que corre (los mails de aviso se apagaron en favor de esto) | `producir_stock.py:69-81`, `notify.py:245-247` |
 | **Embudo** | Leads → conversaciones → link → venta, cortado por "hoy/semana" en `EMBUDO_TZ` | `config.py:679-680` |
 | **Ventas** | Ventas de Hotmart (las sube la PC; desde GitHub Hotmart da 403) | commits `739ec2e`, `a222552` |
 | **Gasto en anuncios** | Con `META_ADS_TOKEN` / `META_AD_ACCOUNT_ID` | `config.py:690-691` |
-| **Producción / encolado** | Toggles por nicho y horas de publicación → `state/toggles.json` en R2 | `src/toggles.py` |
+| **Producción / encolado / redes** | Interruptores por nicho (`produccion`, `encolado`, `fb`, `ig`, `yt`) y horas de publicación → `state/toggles.json` en R2 | `src/toggles.py` |
 | **Notas de voz** | Generar con la voz clonada de Sylvana | `config.py:677-678` |
 | **Conexión Meta** | `/api/meta/connect` guarda el page token | `config.py:318-319` |
 | Publicar | `/api/publicar-uno`, `/api/publish` | `publisher.py` docstring |
@@ -1747,16 +1747,17 @@ marketing-agent/
 ├── .env                      credenciales (+ .env.bak_*)
 ├── config.py                 (exportado a eugenia-produccion)
 ├── webapp.py                 panel web → [[50 - Frontend - Panel web]]
+├── boveda.py                 bóveda de credenciales en R2 (02/11)
 ├── cloudflare-worker/        código + wrangler.toml del Worker de Eugenia
 ├── nube/                     copias vivas de los workflows (producir.yml…)
-├── exportar_produccion.py    genera el repo eugenia-produccion
-├── analisis/COMENTARIOS_IG.md
+├── exportar_produccion.py    genera el repo eugenia-produccion (¡lo regenera entero, borra Whapi/!)
+├── analisis/COMENTARIOS_IG.md, REDISENO_0211.md, AJUSTES_DECORACION.md
 ├── niches/*.yaml  prompts/*  src/*  state/*
 ├── monitor_ventas.py         avisa ventas
 ├── sync_precios.py           scrapea precios por país del checkout de Hotmart
 ├── encolar_stock.py, productor_diario.py, programar_semana.py, postear_ganadores.py
 ├── leer_emails.py, drive_cursos.py
-├── src/local_tts.py          cliente del XTTS local (voz de Eugenia)
+├── src/local_tts.py          cliente del XTTS local (voz de Eugenia) ❓ sigue en uso
 ├── CUENTAS_API.md, VAULT_CREDENCIALES.md
 └── PANEL_KEY.txt
 ```
@@ -1772,9 +1773,9 @@ Prefijo `AgenteMarketing_`: `boletos` (mails), `precios` (escaneo de precios), `
 |---|---|
 | Editar prompts/reglas/credenciales | Contestar mensajes (Worker) |
 | Producir reels con carpeta local | Publicar del stock (Worker cron) |
-| Notas de voz XTTS | Carritos (GitHub + Worker) |
+| Notas de voz | Carritos (GitHub + Worker) |
 | Subir ventas de Hotmart al panel | Comentarios IG → DM (Worker) |
-| Alertas de `notify.py` desde tareas locales | Producción diaria (GitHub) |
+| Alertas de `notify.py` desde tareas locales | Producción diaria y YouTube (GitHub) |
 
 
 ---
@@ -2058,7 +2059,7 @@ curl "https://graph.facebook.com/v21.0/<PHONE_ID>?fields=display_phone_number,ve
 ## Lo que el sistema ya hace bien (✅)
 
 - **Mínimo privilegio en R2**: GitHub solo entra por la puerta; `/v/` solo sirve `reels/*.mp4`; los datos de clientes (`wa/`) quedan fuera.
-- **Credenciales fuera del código**: `.env` con backups, secretos del Worker, secretos de GitHub; el repo exportado no tiene datos de clientes ni claves.
+- **Credenciales fuera del código**: `.env` con backups, bóveda cifrada en R2, secretos del Worker, secretos de GitHub; el repo exportado no tiene datos de clientes ni claves.
 - **Anti-fraude de cobro** en el prompt: Eugenia no repite datos de cobro "nuevos" que alguien le pegue.
 - **Anti-invención**: no promete lo que no está en "QUÉ INCLUYE" (evita reembolsos/contracargos).
 - **Sin urgencias falsas** ni cupos inventados; **respeto ante hardship** genuino.
@@ -2088,7 +2089,7 @@ curl "https://graph.facebook.com/v21.0/<PHONE_ID>?fields=display_phone_number,ve
 | Todo el día | | **Eugenia contesta cada mensaje** en segundos | Worker (webhook) | 🟡 |
 | Cada 10 min | | Cron del Worker: cola de Instagram (`queue/<fecha>.json`, `publish_at`) y stock | Worker | ✅ |
 | 01:00 | 04:00 | Catalogar fuentes de TikTok | GitHub `fuentes.yml` | ✅ |
-| 02:00 | 05:00 | Producir reels (3/día/nicho, hasta 20 en stock) | GitHub `producir.yml` | ✅ |
+| 02:00 | 05:00 | Producir reels (cupo repartido al nicho con menos stock, hasta 20 en stock) | GitHub `producir.yml` | ✅ |
 | ~02:30 | ~05:30 | Subir a YouTube lo ya publicado (`subir_youtube_nube.py`) | GitHub `producir.yml` | ✅ |
 | 06:00 | 09:00 | Publicación del stock (hora 1 por defecto) | Worker | ✅ (`toggles.HORAS_DEFAULT`) |
 | 07:00 | 10:00 | Descubrir carritos abandonados → `/ingest` | GitHub `carritos.yml` | ✅ |
@@ -2120,9 +2121,10 @@ curl "https://graph.facebook.com/v21.0/<PHONE_ID>?fields=display_phone_number,ve
 | **Worker** | Función serverless de Cloudflare (JS) que corre en el borde, 24/7 |
 | **R2** | Almacenamiento de objetos de Cloudflare (bucket `marketing-reels`) |
 | **wrangler** | CLI de Cloudflare para desplegar Workers y manejar R2/secretos |
-| **Puerta R2** | Worker `eugenia-puerta-r2`: acceso limitado a R2 para GitHub |
+| **Puerta R2** | Worker `eugenia-puerta-r2`: acceso limitado a R2 para GitHub (y `/whisper`) |
+| **Bóveda** | `panel/boveda_produccion.json`: credenciales cifradas en R2 para la producción en la nube |
 | **Groq** | Proveedor de inferencia LLM rápido (API compatible con OpenAI) |
-| **Reglas post** | Correcciones por código a la respuesta del LLM antes de enviarla |
+| **Reglas post / ctx** | Correcciones por código a la respuesta del LLM (`post_*`) o contexto que se le agrega antes (`ctx_*`) |
 | **`[SITUACIÓN]`** | Bloque dinámico que el Worker agrega al prompt según el momento de la charla |
 | **sck** | Parámetro de Hotmart para atribuir el origen de una venta (`wa-…`, `ig-r-…`, `fb-r-…`) |
 | **hottok** | Token que Hotmart manda en sus webhooks para validar que son legítimos |
@@ -2141,7 +2143,7 @@ toque Whapi agrega una línea acá.** Lo más nuevo arriba.
 
 | Fecha | Quién | Qué |
 |---|---|---|
-| 2026-11-04 | Claude (Claude Code, nube) | El export de las 12:30 regeneró `eugenia-produccion` y borró el vault y el PR #1. Copia canónica movida a `eugenia-carritos`; vault restaurado en `eugenia-produccion` sobre el `main` nuevo; documentado el rediseño del 02/11 (bóveda cifrada, `state/nichos`, interruptores fb/ig/yt, `publicarDeStock`, `stock/publicados.json`, YouTube desde la nube, `/whisper`, `ctx_precio_pais`, producto bonsái renombrado, fin de XTTS_PUERTOS y del A/B); documento completo subido a Drive. |
+| 2026-11-04 | Claude (Claude Code, nube) | El export de las 12:30 regeneró `eugenia-produccion` y borró el vault y el PR #1. Copia canónica movida a `eugenia-carritos`; vault restaurado en `eugenia-produccion` sobre el `main` nuevo; documentado el rediseño del 02/11 (bóveda cifrada, `state/nichos`, interruptores fb/ig/yt, `publicarDeStock`, `stock/publicados.json`, YouTube desde la nube, `/whisper`, `ctx_precio_pais`, producto bonsái renombrado, fin de XTTS_PUERTOS y del A/B); documento completo subido a Drive en 4 partes. |
 | 2026-11-01 | Claude (Claude Code, nube) | Se replicó Whapi "en todos lados": `CLAUDE.md` + skill `.claude/skills/whapi/` en `eugenia-produccion`, `eugenia-carritos` y `sylvana-jarvis`; copia completa del vault en `eugenia-carritos/Whapi/`; memoria + página en Notion (y página «About Tomix» actualizada); carpeta «Whapi» en Google Drive con el resumen, el pipeline y la guía (el vault completo queda en GitHub). Nota nueva [[03 - Contexto para Claude]]. |
 | 2026-11-01 | Claude (Claude Code, nube) | Creación del vault (37 notas), Worker de referencia probado, documento consolidado. PR `tomixrecoil/eugenia-produccion#1`. |
 

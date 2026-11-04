@@ -17,6 +17,7 @@ nunca escribir valores de secretos, solo nombres.
 
 
 
+
 ## Resumen (copia de Whapi/03 - Contexto para Claude.md)
 
 > **Whapi es el proyecto más importante de Tomix.** Cualquier Claude (Code, VS Code,
@@ -27,7 +28,7 @@ nunca escribir valores de secretos, solo nombres.
 > Notion ([página Whapi](https://app.notion.com/p/40b5314feb14811998b6f2efd27d4640) + memoria
 > [Whapi](https://app.notion.com/p/40b5314feb1481b089f9e599a56752a4)) y Google Drive
 > ([carpeta Whapi](https://drive.google.com/drive/folders/1PxsigA6ZAx83L9TqKoM9Gs-m4F65mrA0) →
-> "Whapi - Resumen, pipeline y guía para replicar"). En cada repo: `CLAUDE.md` + skill `.claude/skills/whapi/`.
+> "Whapi - Resumen, pipeline y guía para replicar" + "Whapi - Documento completo - Parte 1..4"). En cada repo: `CLAUDE.md` + skill `.claude/skills/whapi/`.
 
 ## Qué es
 
