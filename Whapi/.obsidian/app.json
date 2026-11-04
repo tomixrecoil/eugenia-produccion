@@ -1,0 +1,6 @@
+{
+  "useMarkdownLinks": false,
+  "newLinkFormat": "shortest",
+  "showFrontmatter": false,
+  "userIgnoreFilters": ["_export/", "codigo/worker-referencia/node_modules/"]
+}
