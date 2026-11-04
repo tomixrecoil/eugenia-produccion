@@ -1,0 +1,6 @@
+.env
+output/
+downloads/
+state/
+agent.log
+__pycache__/

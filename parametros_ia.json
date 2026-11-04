@@ -1,0 +1,14 @@
+{
+  "gemini": {
+    "temperatura": 0.85
+  },
+  "groq": {
+    "modelos": [
+      "openai/gpt-oss-20b",
+      "qwen/qwen3.6-27b",
+      "groq/compound-mini"
+    ],
+    "temperatura": 0.7,
+    "max_tokens": 700
+  }
+}

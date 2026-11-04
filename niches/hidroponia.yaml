@@ -1,0 +1,114 @@
+name: hidroponia
+producir_activo: true
+tiktok_profile: https://www.tiktok.com/@agrotonomy
+scan_count: 60
+top_k: 1
+min_views: 50000
+meta_page_id: '615394648318530'
+meta_business_id: '450083674862372'
+publish_state: PUBLISHED
+publish_facebook: true
+publish_instagram: true
+publish_youtube: true
+publish_tiktok: false
+tiktok_profile_2: ''
+tiktok_profile_3: ''
+tiktok_profile_4: ''
+youtube_source_1: ''
+youtube_source_2: ''
+youtube_source_3: ''
+carpeta_local: C:/Users/Tomix/Desktop/S e r v i c i o s/Hydropony/@Agrotonomy
+solo_carpeta_local: true
+fuentes_apagadas: []
+cta_link: https://pay.hotmart.com/W99083833C?checkoutMode=10
+cta_modo: checkout
+cta_landing: https://conocimientosdigital.com/hydroponia/
+cta_checkout: https://pay.hotmart.com/W99083833C?checkoutMode=10
+copy_engine: gemini
+tema: hidroponía
+producto_nombre: Curso Completo de Hidroponía
+negocio: Ecosistema Hidropónico
+descuento: 80
+yt_tags:
+- hidroponia
+- cultivo en casa
+- huerto urbano
+- aeroponia
+- sin tierra
+- shorts
+yt_hashtags: '#hidroponia #cultivoencasa #huertourbano #aeroponia #jardineria #Shorts'
+audio_mode: auto
+voiceover_when_silent: true
+english_policy: dub
+elevenlabs_voice: htFfPSZGJwjBv1CL0aMD
+elevenlabs_model: eleven_multilingual_v2
+voice_speed: 1.2
+add_mockup: true
+add_logo: true
+logo_file: assets/hidroponia_logo.png
+logo_scale: 0.35
+logo_position: top
+mockup_file: assets/hidroponia_mockup.png
+mockup_seconds: 12
+mockup_scale: 1.05
+mockup_position: center
+subtitle_font: Baloo 2 ExtraBold
+subtitle_font_size: 234
+subtitle_karaoke: false
+subtitle_popin: false
+subtitle_colores: false
+subtitle_emojis: false
+subtitle_emoji_map: 'agua=💧
+
+  riego=💧
+
+  dinero=💰
+
+  gratis=🎁
+
+  facil=👌
+
+  fácil=👌
+
+  rapido=⚡
+
+  rápido=⚡
+
+  crece=🌱
+
+  crecer=🌱
+
+  planta=🌱
+
+  plantas=🌱
+
+  cultivo=🌱
+
+  cosecha=🌾
+
+  sol=☀️
+
+  casa=🏠
+
+  tiempo=⏰
+
+  gracias=🙏
+
+  increible=🤯
+
+  increíble=🤯
+
+  secreto=🤫
+
+  importante=❗'
+subtitle_outline: 6
+subtitle_margin_v: 670
+subtitle_palabras: 1
+subtitle_color: 00EEFF
+subtitle_minusculas: true
+schedule_enabled: true
+schedule_times:
+- 09:00
+- '18:00'
+gemini_prompt_file: prompts/hidroponia_gemini.txt
+gpt_prompt_file: prompts/hidroponia_gpt.txt

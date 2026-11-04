@@ -1,0 +1,106 @@
+# Producción diaria de reels, con la PC apagada. La copia viva de este archivo está en
+# marketing-agent/nube/producir.yml y llega acá con exportar_produccion.py.
+name: Producir reels
+
+on:
+  schedule:
+    - cron: "0 5 * * *"        # 05:00 UTC = 02:00 ART, antes de la publicación de las 6
+  workflow_dispatch:
+    inputs:
+      nicho:
+        description: "Solo este nicho (vacío = los dos)"
+        required: false
+        default: ""
+      cantidad:
+        description: "Cuántos (vacío = lo que falte)"
+        required: false
+        default: ""
+      solo_youtube:
+        description: "Solo subir a YouTube lo publicado (no produce: no gasta Gemini ni ElevenLabs)"
+        type: boolean
+        required: false
+        default: false
+
+# Dos producciones a la vez se pisan el índice del stock: una espera a la otra.
+concurrency:
+  group: produccion
+  cancel-in-progress: false
+
+jobs:
+  producir:
+    runs-on: ubuntu-24.04
+    # Freno de los 2.000 minutos por mes: ninguna corrida pasa de 75.
+    timeout-minutes: 75
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: ffmpeg
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq --no-install-recommends ffmpeg fonts-noto-color-emoji
+
+      # Arial Black es la letra de los subtítulos. Si la descarga falla se sigue: mejor
+      # un reel con otra letra que ningún reel.
+      - name: Letra de los subtítulos
+        continue-on-error: true
+        run: |
+          echo "ttf-mscorefonts-installer msttcorefonts/accepted-mscorefonts-eula select true" | sudo debconf-set-selections
+          sudo apt-get install -y -qq ttf-mscorefonts-installer
+          fc-list | grep -i "arial black" || echo "OJO: no quedó Arial Black"
+
+      - run: pip install -r requirements.txt
+
+      - name: Producir
+        if: ${{ !inputs.solo_youtube }}
+        env:
+          PYTHONUTF8: "1"
+          FUENTES_DIR: ${{ runner.temp }}/fuentes
+          PUERTA_R2_URL: ${{ vars.PUERTA_R2_URL }}
+          PUERTA_R2_KEY: ${{ secrets.PUERTA_R2_KEY }}
+          BOVEDA_PRODUCCION_KEY: ${{ secrets.BOVEDA_PRODUCCION_KEY }}
+          GEMINI_MODEL: ${{ secrets.GEMINI_MODEL }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          GEMINI_API_KEY_2: ${{ secrets.GEMINI_API_KEY_2 }}
+          GEMINI_API_KEY_3: ${{ secrets.GEMINI_API_KEY_3 }}
+          GEMINI_API_KEY_4: ${{ secrets.GEMINI_API_KEY_4 }}
+          GEMINI_API_KEY_5: ${{ secrets.GEMINI_API_KEY_5 }}
+          GEMINI_API_KEY_6: ${{ secrets.GEMINI_API_KEY_6 }}
+          ELEVENLABS_API_KEY: ${{ secrets.ELEVENLABS_API_KEY }}
+          ELEVENLABS_API_KEY_2: ${{ secrets.ELEVENLABS_API_KEY_2 }}
+          ELEVENLABS_API_KEY_3: ${{ secrets.ELEVENLABS_API_KEY_3 }}
+          ELEVENLABS_API_KEY_4: ${{ secrets.ELEVENLABS_API_KEY_4 }}
+          ELEVENLABS_API_KEY_5: ${{ secrets.ELEVENLABS_API_KEY_5 }}
+          NICHO: ${{ inputs.nicho }}
+          CANTIDAD: ${{ inputs.cantidad }}
+        run: |
+          args=""
+          [ -n "$NICHO" ] && args="$args --nicho $NICHO"
+          [ -n "$CANTIDAD" ] && args="$args --cantidad $CANTIDAD"
+          python produccion_nube.py $args
+
+      # YouTube (02/11/2026): sube los reels que ya salieron en FB/IG, a los nichos con
+      # ▶️ YouTube prendido y canal conectado. Va acá y no en un workflow propio por los
+      # minutos de GitHub. Corre aunque la producción falle: no depende de ella.
+      - name: Subir a YouTube lo publicado
+        if: always()
+        continue-on-error: true
+        env:
+          PYTHONUTF8: "1"
+          PUERTA_R2_URL: ${{ vars.PUERTA_R2_URL }}
+          PUERTA_R2_KEY: ${{ secrets.PUERTA_R2_KEY }}
+          BOVEDA_PRODUCCION_KEY: ${{ secrets.BOVEDA_PRODUCCION_KEY }}
+        run: python subir_youtube_nube.py
+
+      # Para revisar a ojo cómo salió (se borra solo a los 3 días).
+      - name: Guardar el log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: log
+          path: agent.log
+          retention-days: 3

@@ -1,0 +1,12 @@
+# Solo lo que usa la producción en GitHub (la app de escritorio usa el requirements.txt grande).
+google-genai>=1.0.0
+openai>=1.40.0
+yt-dlp>=2026.7.4
+requests>=2.31.0
+python-dotenv>=1.0.0
+PyYAML>=6.0
+Pillow>=10.0.0
+cryptography>=42.0.0
+# Subida a YouTube (subir_youtube_nube.py)
+google-api-python-client>=2.100.0
+google-auth>=2.20.0

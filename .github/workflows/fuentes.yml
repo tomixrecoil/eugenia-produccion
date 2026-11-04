@@ -1,0 +1,64 @@
+# Fuentes nuevas de TikTok, sin la PC. La copia viva está en marketing-agent/nube/.
+# Corre antes que la producción, así lo nuevo ya está disponible a las 02:00.
+name: Catalogar fuentes
+
+on:
+  schedule:
+    - cron: "0 4 * * *"        # 04:00 UTC = 01:00 ART
+  workflow_dispatch:
+    inputs:
+      limite_nuevos:
+        description: "Cuántos videos nuevos bajar por nicho"
+        required: false
+        default: "8"
+      limite_revisar:
+        description: "Cuántas fuentes sin verificar revisar"
+        required: false
+        default: "15"
+
+# Misma fila que la producción: nunca escriben R2 a la vez.
+concurrency:
+  group: produccion
+  cancel-in-progress: false
+
+jobs:
+  fuentes:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: ffmpeg
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq --no-install-recommends ffmpeg
+      - run: pip install -r requirements.txt
+      - name: Catalogar y revisar
+        env:
+          PYTHONUTF8: "1"
+          FUENTES_DIR: ${{ runner.temp }}/fuentes
+          PUERTA_R2_URL: ${{ vars.PUERTA_R2_URL }}
+          PUERTA_R2_KEY: ${{ secrets.PUERTA_R2_KEY }}
+          BOVEDA_PRODUCCION_KEY: ${{ secrets.BOVEDA_PRODUCCION_KEY }}
+          GEMINI_MODEL: ${{ secrets.GEMINI_MODEL }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          GEMINI_API_KEY_2: ${{ secrets.GEMINI_API_KEY_2 }}
+          GEMINI_API_KEY_3: ${{ secrets.GEMINI_API_KEY_3 }}
+          GEMINI_API_KEY_4: ${{ secrets.GEMINI_API_KEY_4 }}
+          GEMINI_API_KEY_5: ${{ secrets.GEMINI_API_KEY_5 }}
+          GEMINI_API_KEY_6: ${{ secrets.GEMINI_API_KEY_6 }}
+          NUEVOS: ${{ inputs.limite_nuevos || '8' }}
+          REVISAR: ${{ inputs.limite_revisar || '15' }}
+        run: |
+          python fuentes_nube.py nuevos --limite "$NUEVOS" || echo "OJO: catalogar falló"
+          python fuentes_nube.py revisar --limite "$REVISAR"
+      - name: Guardar el log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: log-fuentes
+          path: agent.log
+          retention-days: 3

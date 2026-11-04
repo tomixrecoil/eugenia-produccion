@@ -1,0 +1,46 @@
+{
+ "post_asegurar_link_cierre": {
+  "activa": false,
+  "texto": ""
+ },
+ "post_un_solo_link": {
+  "activa": false,
+  "texto": ""
+ },
+ "post_separar_cta_transfer": {
+  "activa": true,
+  "texto": ""
+ },
+ "post_formato_final": {
+  "activa": true,
+  "texto": ""
+ },
+ "post_sacar_link_1": {
+  "activa": true,
+  "texto": ""
+ },
+ "post_sin_link_temprano": {
+  "activa": true,
+  "texto": ""
+ },
+ "post_link_si_lo_pide": {
+  "activa": true,
+  "texto": ""
+ },
+ "post_forzar_saludo": {
+  "activa": true,
+  "texto": ""
+ },
+ "post_completar_bloque_transfer": {
+  "activa": true,
+  "texto": ""
+ },
+ "post_forzar_precio": {
+  "activa": true,
+  "texto": ""
+ },
+ "post_pausa_link": {
+  "activa": true,
+  "texto": ""
+ }
+}

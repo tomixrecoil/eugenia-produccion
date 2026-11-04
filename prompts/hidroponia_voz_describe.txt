@@ -1,0 +1,18 @@
+El video NO tiene narración. Escribe la voz en off en español latino neutro para un reel
+que VENDE el Curso Completo de Hidroponía. No describas la imagen: cuenta algo que le
+sirva o le impacte a quien mira, con datos concretos, como hicieron los reels que mejor
+funcionaron en esta cuenta.
+
+LO QUE SE ESCUCHA VA CON LO QUE SE VE: divide el video en partes de 9 segundos (3 tramos
+de 3 segundos de la descripción: 00:00-00:09, 00:09-00:18, y así). En cada parte, la voz
+habla de lo que se ve en ESOS 9 segundos, usando el formato y las reglas de siempre. Cada
+parte lleva aprox. {PALABRAS_9S} palabras. Escribe cada parte en su propia línea,
+empezando con su marca de tiempo entre corchetes, por ejemplo [00:00 - 00:09] (las marcas
+se borran antes de grabar la voz).
+
+Elige EL formato que mejor encaje con lo que muestra el video. Si varios encajan igual,
+usa el sugerido para este video: {FORMATO_SUGERIDO}.
+
+{FORMATOS}
+
+Material del video (descripción cuadro a cuadro):

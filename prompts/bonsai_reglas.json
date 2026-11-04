@@ -1,0 +1,18 @@
+{
+ "post_separar_cta_transfer": {
+  "activa": true,
+  "texto": ""
+ },
+ "post_formato_final": {
+  "activa": true,
+  "texto": ""
+ },
+ "post_pausa_link": {
+  "activa": true,
+  "texto": ""
+ },
+ "ctx_precio_pais": {
+  "activa": true,
+  "texto": ""
+ }
+}

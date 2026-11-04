@@ -1,0 +1,26 @@
+# Diagnóstico a mano: ¿ElevenLabs le contesta a GitHub? Imprime solo el código de
+# respuesta y el motivo, nunca las claves. Gasta ~4 caracteres por cuenta.
+name: Diagnostico ElevenLabs
+on: workflow_dispatch
+jobs:
+  eleven:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Probar las 5 cuentas
+        env:
+          K1: ${{ secrets.ELEVENLABS_API_KEY }}
+          K2: ${{ secrets.ELEVENLABS_API_KEY_2 }}
+          K3: ${{ secrets.ELEVENLABS_API_KEY_3 }}
+          K4: ${{ secrets.ELEVENLABS_API_KEY_4 }}
+          K5: ${{ secrets.ELEVENLABS_API_KEY_5 }}
+        run: |
+          for i in 1 2 3 4 5; do
+            eval k=\$K$i
+            code=$(curl -s -o r.json -w "%{http_code}" -X POST \
+              "https://api.elevenlabs.io/v1/text-to-speech/htFfPSZGJwjBv1CL0aMD/with-timestamps" \
+              -H "xi-api-key: $k" -H "content-type: application/json" \
+              -d '{"text":"hola","model_id":"eleven_multilingual_v2"}')
+            motivo=$(python3 -c "import json;d=json.load(open('r.json'));x=d.get('detail',{});print(x.get('status','') if isinstance(x,dict) else str(x)[:80])" 2>/dev/null)
+            echo "cuenta $i: $code $motivo"
+          done
