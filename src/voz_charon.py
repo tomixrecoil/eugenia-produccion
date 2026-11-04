@@ -220,6 +220,94 @@ def _cortes_por_pausas(frases: list[str], dur: float, silencios: list[tuple[floa
     return tramos
 
 
+def _whisper(wav: Path):
+    """Las palabras del audio con su inicio y fin, de Whisper en Cloudflare (la ruta
+    /whisper de la puerta, plan gratis). None si no hay puerta (la PC) o si falla."""
+    import json
+    import os
+    import urllib.request
+    url = (os.getenv("PUERTA_R2_URL") or "").strip().rstrip("/")
+    clave = (os.getenv("PUERTA_R2_KEY") or "").strip()
+    if not (url and clave):
+        return None
+    mp3 = wav.with_name(wav.stem + "_whisper.mp3")
+    p = _sp.run(["ffmpeg", "-y", "-v", "error", "-i", str(wav), "-ac", "1", "-ar", "16000",
+                 "-b:a", "32k", str(mp3)], capture_output=True)
+    if p.returncode != 0 or not mp3.exists():
+        return None
+    try:
+        req = urllib.request.Request(f"{url}/whisper", data=mp3.read_bytes(), method="POST")
+        req.add_header("x-clave", clave)
+        req.add_header("user-agent", "eugenia-produccion/1.0")   # sin esto Cloudflare corta (1010)
+        req.add_header("content-type", "audio/mpeg")
+        with urllib.request.urlopen(req, timeout=120) as r:
+            d = json.loads(r.read().decode("utf-8"))
+    except Exception as e:  # noqa: BLE001
+        log.warning("Whisper no respondió (%s): uso los cortes por pausas", str(e)[:100])
+        return None
+    finally:
+        mp3.unlink(missing_ok=True)
+    palabras = d.get("words") or []
+    return palabras if d.get("ok") and palabras else None
+
+
+def _sin_tildes(t: str) -> str:
+    import unicodedata
+    t = unicodedata.normalize("NFD", t.lower())
+    return _re.sub(r"[^a-z0-9ñ]", "", "".join(c for c in t if unicodedata.category(c) != "Mn"))
+
+
+def _alinear_whisper(texto: str, palabras: list[dict]):
+    """Alignment por letra a partir de las palabras de Whisper. Las palabras del guion se
+    emparejan con las de Whisper por similitud (Whisper puede escribir "100" o "bonsai"
+    distinto); las que no coinciden se reparten entre sus vecinas. None si coincide menos
+    del 60 %: ahí no es confiable y quedan los cortes por pausas."""
+    import difflib
+    tramos = [(m.start(), m.end()) for m in _re.finditer(r"\S+", texto)]
+    if not tramos:
+        return None
+    a = [_sin_tildes(texto[i:j]) for i, j in tramos]
+    b = [_sin_tildes(str(w.get("word", ""))) for w in palabras]
+    tiempos = [None] * len(tramos)
+    sm = difflib.SequenceMatcher(None, a, b, autojunk=False)
+    for blk in sm.get_matching_blocks():
+        for k in range(blk.size):
+            w = palabras[blk.b + k]
+            tiempos[blk.a + k] = (float(w["start"]), float(w["end"]))
+    if sum(t is not None for t in tiempos) < 0.6 * len(tramos):
+        return None
+    # Las que no coincidieron: entre el fin de la anterior y el inicio de la siguiente.
+    k = 0
+    while k < len(tiempos):
+        if tiempos[k] is not None:
+            k += 1
+            continue
+        j = k
+        while j < len(tiempos) and tiempos[j] is None:
+            j += 1
+        desde = tiempos[k - 1][1] if k > 0 else 0.0
+        hasta = tiempos[j][0] if j < len(tiempos) else desde + 0.35 * (j - k)
+        paso = max(hasta - desde, 0.0) / (j - k)
+        for m in range(k, j):
+            tiempos[m] = (desde + paso * (m - k), desde + paso * (m - k + 1))
+        k = j
+    chars, ini, fin = [], [], []
+    ultimo = 0.0
+    for (i, j), (t0, t1) in zip(tramos, tiempos):
+        t0 = max(t0, ultimo)
+        t1 = max(t1, t0)
+        if chars:                       # el espacio entre palabras
+            chars.append(" "); ini.append(ultimo); fin.append(t0)
+        n = j - i
+        for q, c in enumerate(texto[i:j]):
+            chars.append(c)
+            ini.append(t0 + (q / n) * (t1 - t0))
+            fin.append(t0 + ((q + 1) / n) * (t1 - t0))
+        ultimo = t1
+    return {"characters": chars, "character_start_times_seconds": ini,
+            "character_end_times_seconds": fin}
+
+
 def sintetizar_con_timing(texto: str, destino: Path, voz: str = VOZ):
     """(wav_completo, alignment). UN solo pedido por reel (una cuenta, un modelo) y el
     tiempo de cada frase sale de las pausas del audio. Si una cuenta o modelo falla, se
@@ -244,6 +332,14 @@ def sintetizar_con_timing(texto: str, destino: Path, voz: str = VOZ):
                 if dur < minimo:
                     raise RuntimeError(f"audio cortado ({dur:.1f} s para {len(entero)} caracteres)")
                 _a_wav(pcm, destino)
+                # Primero, el tiempo EXACTO de cada palabra con Whisper (Cloudflare). Si no
+                # está o no es confiable, los cortes por pausas de abajo.
+                palabras = _whisper(destino)
+                al = _alinear_whisper(entero, palabras) if palabras else None
+                if al:
+                    log.info("Voz Charon por %s (cuenta %d) en UN pedido — %.1f s, subtítulos "
+                             "por palabra con Whisper", modelo, i, dur)
+                    return destino, al
                 tramos = _cortes_por_pausas(frases, dur, _silencios(destino))
                 chars, ini, fin = [], [], []
                 for fr, (a, b) in zip(frases, tramos):

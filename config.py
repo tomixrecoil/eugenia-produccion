@@ -674,6 +674,9 @@ ENV_KEYS = [
     "META_AD_ACCOUNT_ID", "META_ADS_TOKEN",
     # Llaves de la bóveda de credenciales en la nube (boveda.py, analisis/REDISENO_0211.md).
     "BOVEDA_KEY", "BOVEDA_PRODUCCION_KEY",
+    # Clave de la puerta de GitHub a R2 (también abre /whisper). SIN la URL a propósito: con
+    # PUERTA_R2_URL en el entorno, r2io cree que está en la nube.
+    "PUERTA_R2_KEY",
     # OJO: NICHE (config.py, postear_ganadores.py, subir_youtube.py, sync_precios.py)
     # queda A PROPÓSITO fuera de la lista: se lee con os.getenv("NICHE", "hidroponia")
     # y un valor VACÍO no activa ese default -> load_niche("") explota y el checkout
