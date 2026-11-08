@@ -987,10 +987,24 @@ def _producir(nicho: str, cuantos: int = 3, clase: str = "AUTO") -> tuple[list, 
             # venía mudo) o una TRADUCCIÓN. Es lo que Eugenia informa al publicar.
             tipo = {"TRADUCIR": "traduccion", "MUTEADO": "muteado_guion_nuevo",
                     "REPETIR": "repeticion_otro_angulo"}.get(clase, "guion_nuevo_asmr")
+            # PORTADA (08/11/2026): la IA elige del video TERMINADO el cuadro más llamativo, cuando el
+            # subtítulo dice una palabra clave. Instagram la usa por `thumb_offset`, Facebook por el jpg.
+            portada_extras = {}
+            try:
+                from src import portada as _portada
+                pt = _portada.elegir(final, nicho)
+                if pt:
+                    jpg = out / "portada.jpg"
+                    jpg.write_bytes(pt["jpg"])
+                    if armar_stock.r2_put(jpg, f"{armar_stock.BUCKET}/reels/{clave}_portada.jpg", "image/jpeg"):
+                        portada_extras = {"portada_ms": pt["ms"], "portada_palabra": pt["palabra"],
+                                          "portada_key": f"reels/{clave}_portada.jpg"}
+            except Exception as e:  # noqa: BLE001
+                log.warning("Portada: %s", str(e)[:100])
             armar_stock.agregar(nicho, clave, final, copy, pista[:40],
                                 voz=usada, guion=guion, tipo=tipo,
                                 extras={"arreglado": True, "descripcion": (desc or "")[:8000],
-                                        "fuente": tid, "clase": clase})
+                                        "fuente": tid, "clase": clase, **portada_extras})
             prefijo = {"MUTEADO": "muteado: ", "REPETIR": "repite: "}.get(clase, "")
             registro_fuentes.registrar(nicho, clave, tid, (prefijo + pista)[:60])
             hechos.append(clave)
