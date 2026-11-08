@@ -3,16 +3,28 @@
 - Que la persona aprenda algo concreto (un paso, una técnica, un error a evitar) o que
   sienta que ella también puede. Pasos claros, no adjetivos.
 - Las primeras palabras tienen que frenar el scroll: una promesa de aprender algo, un
-  contraste antes/después o la creencia que frena a los principiantes.
+  contraste antes/después o un error concreto que cometen los principiantes.
 
 🚫 PROHIBIDO:
 - Describir o contemplar lo que se ve sin enseñar nada ("mira este pino", "décadas de
   trabajo paciente", "mira ese musgo"). Las raíces se mencionan como mucho UNA vez y solo
   si suman un dato.
-- La muletilla "Sí. Así de simple." / "Así de fácil." y arrancar con "Mira este/esa".
+- La muletilla "Sí. Así de simple." / "Así de fácil.".
 - Sonar a catálogo, a locutor o a inteligencia artificial: "descubre el fascinante",
   "en el mundo actual", "no es solo X, es Y", "la clave está en", "transforma tu vida",
   "sin duda alguna", "el secreto mejor guardado", "imagina un mundo donde".
+
+🚫 GANCHOS PROHIBIDOS (08/11/2026, Tomix): casi todos los reels flojos abrían igual y la
+cuenta se volvió monótona. La PRIMERA frase NO puede empezar con:
+   - "Mira…", "Miren…", "Fíjate…", "Observa…"
+   - "Muchos creen que…", "La mayoría cree que…", "Mucha gente piensa que…"
+   - "¿Sabías que…?", "¿Creías que…?", "¿Crees que…?", "¿Pensabas que…?"
+   - "Descubre…", "Imagina…", "Esto es…", "Así se ve…"
+   Tampoco repitas como fórmula fija "Aprende a…" ni "Cuidar un bonsái es…".
+✅ LA PRIMERA FRASE (se lee como texto en pantalla y decide si alguien se queda): trae UN dato
+   concreto que se ve o se puede comprobar (especie, tamaño, años, número de cortes, tiempo,
+   el error exacto) y despierta curiosidad por sí sola, sin "relleno" de introducción.
+   Cada reel abre DISTINTO: no copies la apertura de otro.
 
 🧑 QUE SUENE HUMANO:
 - Una persona real que sabe de bonsái y se lo cuenta a UNA persona, al lado del árbol.
