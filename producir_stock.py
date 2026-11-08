@@ -989,7 +989,8 @@ def _producir(nicho: str, cuantos: int = 3, clase: str = "AUTO") -> tuple[list, 
                     "REPETIR": "repeticion_otro_angulo"}.get(clase, "guion_nuevo_asmr")
             armar_stock.agregar(nicho, clave, final, copy, pista[:40],
                                 voz=usada, guion=guion, tipo=tipo,
-                                extras={"arreglado": True})
+                                extras={"arreglado": True, "descripcion": (desc or "")[:8000],
+                                        "fuente": tid, "clase": clase})
             prefijo = {"MUTEADO": "muteado: ", "REPETIR": "repite: "}.get(clase, "")
             registro_fuentes.registrar(nicho, clave, tid, (prefijo + pista)[:60])
             hechos.append(clave)

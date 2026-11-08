@@ -110,32 +110,6 @@ def sin_marcas(texto: str) -> str:
     return re.sub(r" *\n *", "\n", t).strip()
 
 
-# ---- GANCHOS PROHIBIDOS (08/11/2026, Tomix) -------------------------------------------------
-# La primera frase del guion se ve en pantalla (miniatura) y decide si alguien se queda. En
-# bonsái casi todos los reels abrían con "Mira esto", "Fíjate en", "Muchos creen que", "¿Sabías
-# que" y la cuenta se volvió monótona. El prompt lo prohíbe, pero Gemini se lo salta de vez en
-# cuando: este guardia lo rechaza y pide el guion de nuevo. Hidroponía solo veta el "Mira esto"
-# (su "¿Sabías que…?" es de los anuncios que más funcionaron).
-_GANCHOS_COMUNES = [r"mir[aáeé]n?", r"f[ií]jat[ee]", r"f[ií]jense", r"observ[ae]n?"]
-_GANCHOS_PROHIBIDOS = {
-    "bonsai": _GANCHOS_COMUNES + [
-        r"(muchos|muchas personas|mucha gente|la mayor[ií]a|casi todos)(\s+\w+)?\s+(cree|creen|piensa|piensan|dice|dicen)",
-        r"(sab[ií]as|sabes)\s+que", r"(cre[ií]as|crees|pensabas|piensas)\s+que",
-        r"descubre", r"imagina", r"(esto|as[ií])\s+(es|se ve)\b",
-    ],
-}
-
-
-def apertura_prohibida(script: str, nicho: str = "") -> str:
-    """La apertura vetada con la que empieza el guion ('' si está bien)."""
-    t = re.sub(r"^[\W_]+", "", script or "", flags=re.UNICODE).lower()
-    for pat in _GANCHOS_PROHIBIDOS.get(nicho, _GANCHOS_COMUNES):
-        m = re.match(pat + r"\b", t)
-        if m:
-            return " ".join(t.split()[:4])
-    return ""
-
-
 def vende_en_voz(video_id: str) -> bool:
     """Si ESTE video nombra el curso en la voz (True) o es contenido puro y la venta va en
     el copy (False). Mitad y mitad, fijo por video (se puede re-correr sin que cambie).
@@ -225,29 +199,6 @@ def spanish_script(mode: str, source_text: str, duration_secs: float,
     script = _text(resp)
     # Limpieza defensiva de posibles restos de formato.
     script = sin_marcas(script)
-    # Guardia de ganchos (ver _GANCHOS_PROHIBIDOS): hasta 3 reintentos con aviso explícito.
-    for intento in range(3):
-        mala = apertura_prohibida(script, nicho)
-        if not mala:
-            break
-        log.warning("Guion con apertura prohibida («%s…»): lo pido de nuevo (%d/3).", mala, intento + 1)
-        otra = (prompt + f"\n\nIMPORTANTE: tu guion anterior empezó con «{mala}…» y esa apertura está "
-                "PROHIBIDA. Escribe el guion de nuevo desde cero: la primera frase tiene que traer un "
-                "dato concreto del video (especie, tamaño, tiempo, el error exacto) y NO puede empezar "
-                "con 'Mira', 'Fíjate', 'Observa', 'Muchos creen que', '¿Sabías que' ni '¿Creías que'.")
-        try:
-            r_otra = gemini_client.run(lambda c: gemini_client.generate(c, model, [otra], system=sistema_ref))
-            script = sin_marcas(_text(r_otra))
-        except Exception as e:  # noqa: BLE001
-            log.warning("No pude regenerar el guion (%s).", str(e)[:80])
-            break
-    mala = apertura_prohibida(script, nicho)
-    if mala:
-        # Último recurso: se saca la primera frase vetada si el resto se sostiene solo.
-        frases = re.split(r"(?<=[.!?])\s+", script.strip())
-        if len(frases) > 2 and len(" ".join(frases[1:]).split()) >= 0.7 * len(script.split()):
-            log.warning("Apertura «%s…» sigue vetada: se quita la primera frase.", mala)
-            script = " ".join(frases[1:])
     # LARGO (19/10/2026): si se pasa más de un 15% de lo pedido, la voz queda más larga
     # que el video y se congela el último cuadro (pasó: 24 s de imagen quieta en un
     # doblaje de 70 s). Se pide UNA vez que lo acorte, conservando datos y cierre.
