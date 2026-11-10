@@ -1,5 +1,5 @@
 # Solo lo que usa la producción en GitHub (la app de escritorio usa el requirements.txt grande).
-google-genai>=1.0.0
+google-genai>=1.0.0,<3  # 3.0 (nov-2026) rompe la voz de Charon: "Unknown name speechConfig"
 openai>=1.40.0
 yt-dlp>=2026.7.4
 requests>=2.31.0
