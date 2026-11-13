@@ -726,7 +726,7 @@ def sintetizar_voz(guion: str, clave: str, niche, solo_charon: bool = False,
     sin_voz_no_marca=True: permite Antonio y Charon pero NUNCA cae a Antoni (que no es
     la voz de la marca). Para el re-doblaje del stock: sin apuro, mejor esperar la
     recarga de Antonio que sacar reels con otra voz."""
-    from src import voz_charon, voiceover
+    from src import voiceover
 
     voces = carpeta_de("hidroponia") / "_VOCES"
     voces.mkdir(parents=True, exist_ok=True)
@@ -746,22 +746,30 @@ def sintetizar_voz(guion: str, clave: str, niche, solo_charon: bool = False,
                 # Antes se tragaba el motivo: en GitHub las 5 cuentas fallaban sin decir por qué.
                 log.warning("ElevenLabs cuenta %d falló: %s", i, str(e)[:160])
                 continue
-    if v is None:
-        try:
-            v, align = voz_charon.sintetizar_con_timing(guion, voces / f"voz_{clave}.wav")
-            usada = "Google/Charon"
-        except Exception as e:  # noqa: BLE001
-            if solo_charon:
-                raise CuotaAgotada(f"Charon sin cuota y solo_charon=True ({str(e)[:60]})")
+    # 10/11 (Tomix): "charon no vende" — Google AI Studio FUERA de la cascada. Orden:
+    # Antonio (Confident Conversational Latino) -> Antoni. Nada más.
+    if solo_charon:
+        raise CuotaAgotada("Charon ya no se usa (10/11): solo Antonio y Antoni")
     if v is None and sin_voz_no_marca:
-        raise CuotaAgotada("Antonio y Charon sin cuota ahora; espero la próxima recarga "
+        raise CuotaAgotada("Antonio sin cuota ahora; espero la próxima recarga "
                            "antes que usar una voz que no es de la marca")
-    if v is None:      # último recurso: la voz gratis
-        keys = voiceover.eleven_keys()
-        v, align = voiceover.synthesize_timed(
-            guion, keys[-1], niche.elevenlabs_voice, niche.elevenlabs_model,
-            voces / f"voz_{clave}.mp3", speed=_velocidad(niche), permitir_voz_gratis=True)
-        usada = "ElevenLabs/Antoni (gratis)"
+    if v is None:
+        # Antoni probando TODAS las cuentas. Antes probaba solo la última (keys[-1]),
+        # que estaba agotada, mientras otras 3 cuentas tenían los 10.000 caracteres
+        # libres: el 08 y 09/11 no salió ningún reel por eso.
+        ultimo = None
+        for i, k in enumerate(voiceover.eleven_keys(), 1):
+            try:
+                v, align = voiceover.synthesize_timed(
+                    guion, k, niche.elevenlabs_voice, niche.elevenlabs_model,
+                    voces / f"voz_{clave}.mp3", speed=_velocidad(niche), permitir_voz_gratis=True)
+                usada = f"ElevenLabs/Antoni (cuenta {i})"
+                break
+            except Exception as e:  # noqa: BLE001
+                ultimo = e
+                log.warning("Antoni cuenta %d falló: %s", i, str(e)[:160])
+        if v is None:
+            raise CuotaAgotada(f"Antonio y Antoni sin cuota en las 5 cuentas ({str(ultimo)[:80]})")
     return v, align, usada
 
 
@@ -987,9 +995,24 @@ def _producir(nicho: str, cuantos: int = 3, clase: str = "AUTO") -> tuple[list, 
             # venía mudo) o una TRADUCCIÓN. Es lo que Eugenia informa al publicar.
             tipo = {"TRADUCIR": "traduccion", "MUTEADO": "muteado_guion_nuevo",
                     "REPETIR": "repeticion_otro_angulo"}.get(clase, "guion_nuevo_asmr")
+            # PORTADA (08/11/2026): la IA elige del video TERMINADO el cuadro más llamativo, cuando el
+            # subtítulo dice una palabra clave. Instagram la usa por `thumb_offset`, Facebook por el jpg.
+            portada_extras = {}
+            try:
+                from src import portada as _portada
+                pt = _portada.elegir(final, nicho)
+                if pt:
+                    jpg = out / "portada.jpg"
+                    jpg.write_bytes(pt["jpg"])
+                    if armar_stock.r2_put(jpg, f"{armar_stock.BUCKET}/reels/{clave}_portada.jpg", "image/jpeg"):
+                        portada_extras = {"portada_ms": pt["ms"], "portada_palabra": pt["palabra"],
+                                          "portada_key": f"reels/{clave}_portada.jpg"}
+            except Exception as e:  # noqa: BLE001
+                log.warning("Portada: %s", str(e)[:100])
             armar_stock.agregar(nicho, clave, final, copy, pista[:40],
                                 voz=usada, guion=guion, tipo=tipo,
-                                extras={"arreglado": True})
+                                extras={"arreglado": True, "descripcion": (desc or "")[:8000],
+                                        "fuente": tid, "clase": clase, **portada_extras})
             prefijo = {"MUTEADO": "muteado: ", "REPETIR": "repite: "}.get(clase, "")
             registro_fuentes.registrar(nicho, clave, tid, (prefijo + pista)[:60])
             hechos.append(clave)

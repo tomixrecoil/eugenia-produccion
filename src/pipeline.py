@@ -149,8 +149,8 @@ def _process_media(video_path: Path, analysis_text: str, niche: Niche,
             # "auto" y "antonio" son hoy el mismo orden (ver docstring): Antonio primero,
             # Charon de resguardo. No se saca ninguno de los dos: sin respaldo, un 402
             # o una cuenta sin cuota descartaría el reel entero.
-            intentos = [("ElevenLabs/Antonio", lambda: _eleven(False)),
-                        ("Charon (Google AI Studio)", _charon)]
+            # 10/11 (Tomix: "charon no vende"): Charon FUERA. Antonio -> Antoni.
+            intentos = [("ElevenLabs/Antonio", lambda: _eleven(False))]
             # El último recurso va SIEMPRE al final.
             intentos.append(("voz gratis (Antoni)", lambda: _eleven(True)))
 

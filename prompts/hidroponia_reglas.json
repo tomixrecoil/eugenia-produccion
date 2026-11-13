@@ -20,7 +20,7 @@
   "texto": ""
  },
  "post_sin_link_temprano": {
-  "activa": true,
+  "activa": false,
   "texto": ""
  },
  "post_link_si_lo_pide": {

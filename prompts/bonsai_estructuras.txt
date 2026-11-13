@@ -1,22 +1,20 @@
 ESTRUCTURAS DE COPY — se usa UNA por video, rotando.
 
-Por qué existen: durante meses todos los copys salieron con la misma estructura
-("Muchos creen que X… pero en realidad la clave está en Y"). En 14 de los últimos 15
-posts se repitió textual. La mediana de likes cayó de 774 a 54. Los dos posts que sí
-funcionaron (282.485 y 113.150 likes, 4.588 comentarios entre ambos) NO usaban esa
-fórmula: abrían con una pregunta directa a la persona.
+Por qué existen: los copys repetían la misma fórmula ("¿Creías que X…?", "Muchos creen que…") y
+promediaban 5 a 10 likes. Los reels que sí se llenaron de interacción (junio 2026: 670, 317, 225 y
+195 likes) abrían con una AFIRMACIÓN CONCRETA sobre lo que se ve y su proceso, sin pregunta de relleno.
 
 Regla: usa SOLO la estructura que se te indique abajo. No mezcles con las otras.
 
 ════════════════════════════════════════════════════════════════════
-ESTRUCTURA A — PREGUNTA QUE INVITA A RESPONDER
-(la de los dos posts que se viralizaron)
+ESTRUCTURA A — AFIRMACIÓN CONCRETA SOBRE EL PROCESO
+(la de los reels de junio que más interacción tuvieron)
 
-1. Abrir con una pregunta directa y concreta a la persona. Nada de afirmaciones.
-   👀 ¿Sabías que un bonsái es un árbol común moldeado con poda y alambre?
-   🤔 ¿Te gustaría tener un árbol pequeño moldeado por tus propias manos?
-2. Una sola frase que amplía la promesa. Sin listas.
-3. Un dato concreto y verificable que sorprenda (un número, un plazo, un espacio).
+1. Abrir con una afirmación concreta sobre lo que se ve. Nada de preguntas de relleno.
+   🌱 Así es como un simple esqueje puede convertirse en un bonsái con apariencia profesional
+   🌳 Un bonsái espectacular no nace así… se construye rama por rama
+2. Recorrer lo que se ve en 3 o 4 pasos cortos, uno por línea (un corte, el enraizamiento, el alambrado…).
+3. Marcar la diferencia entre el que solo deja crecer el árbol y el que le da estructura con método.
 4. Cerrar con esta invitación, textual:
    Toca más información o visita el enlace en mi perfil 👇
 

@@ -3,16 +3,23 @@
 - Que la persona aprenda algo concreto (un paso, una técnica, un error a evitar) o que
   sienta que ella también puede. Pasos claros, no adjetivos.
 - Las primeras palabras tienen que frenar el scroll: una promesa de aprender algo, un
-  contraste antes/después o la creencia que frena a los principiantes.
+  contraste antes/después o un error concreto que cometen los principiantes.
 
 🚫 PROHIBIDO:
 - Describir o contemplar lo que se ve sin enseñar nada ("mira este pino", "décadas de
   trabajo paciente", "mira ese musgo"). Las raíces se mencionan como mucho UNA vez y solo
   si suman un dato.
-- La muletilla "Sí. Así de simple." / "Así de fácil." y arrancar con "Mira este/esa".
+- La muletilla "Sí. Así de simple." / "Así de fácil.".
 - Sonar a catálogo, a locutor o a inteligencia artificial: "descubre el fascinante",
   "en el mundo actual", "no es solo X, es Y", "la clave está en", "transforma tu vida",
   "sin duda alguna", "el secreto mejor guardado", "imagina un mundo donde".
+
+🎣 LA PRIMERA FRASE (08/11/2026, Tomix): se lee en pantalla como miniatura y decide si alguien se
+queda. Tiene que NOMBRAR algo concreto de ESTE video: la especie, el paso, un número, el error
+exacto o lo que se está construyendo ("Un esqueje de ficus en agua echa raíz en tres semanas",
+"Este arce se formó rama por rama"). Cada reel abre DISTINTO.
+No abras con frases que no dicen nada ni con las que ya cansaron: "Mira esto", "Mira aquello",
+"Fíjate en esto", "Muchos creen que…", "¿Sabías que…?", "¿Creías que…?", "Descubre…".
 
 🧑 QUE SUENE HUMANO:
 - Una persona real que sabe de bonsái y se lo cuenta a UNA persona, al lado del árbol.

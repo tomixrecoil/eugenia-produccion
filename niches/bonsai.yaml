@@ -1,5 +1,4 @@
 name: bonsai
-producir_activo: true
 tiktok_profile: https://www.tiktok.com/@elden_bonsai
 scan_count: 60
 top_k: 1
@@ -22,7 +21,7 @@ solo_carpeta_local: true
 fuentes_apagadas: []
 cta_link: https://pay.hotmart.com/T97313346W?checkoutMode=10
 cta_modo: checkout
-cta_landing: https://conocimientosdigital.com/bonsai/
+cta_landing: https://pay.hotmart.com/T97313346W?checkoutMode=10
 cta_checkout: https://pay.hotmart.com/T97313346W?checkoutMode=10
 copy_engine: gemini
 tema: bonsái
