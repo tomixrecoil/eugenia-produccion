@@ -90,5 +90,5 @@ Si es la primera vez que entrás, leé en este orden:
 | Otros Workers | `eugenia-mail-recuperacion`, `eugenia-puerta-r2` |
 | Bucket R2 | `marketing-reels` |
 | LLM de las charlas | **Groq** (3 cuentas, 3 modelos en cascada) |
-| Venta | Hotmart (checkout `W99083833C` hidroponía, `T97313346W` bonsái) |
+| Venta | Hotmart (checkout `J97312812A` hidroponía desde 10/11 —antes `W99083833C`—, `T97313346W` bonsái) |
 | Copia canónica del vault | `tomixrecoil/eugenia-carritos` → `Whapi/` |

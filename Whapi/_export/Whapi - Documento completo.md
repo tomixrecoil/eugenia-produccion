@@ -1,6 +1,6 @@
 # Whapi — Documento completo
 
-> Todas las notas del vault en un solo archivo. Generado el 04/11/2026. Fuente canónica: tomixrecoil/eugenia-carritos/Whapi.
+> Todas las notas del vault en un solo archivo. Generado el 13/11/2026. Fuente canónica: tomixrecoil/eugenia-carritos/Whapi.
 
 
 ---
@@ -92,7 +92,7 @@ Si es la primera vez que entrás, leé en este orden:
 | Otros Workers | `eugenia-mail-recuperacion`, `eugenia-puerta-r2` |
 | Bucket R2 | `marketing-reels` |
 | LLM de las charlas | **Groq** (3 cuentas, 3 modelos en cascada) |
-| Venta | Hotmart (checkout `W99083833C` hidroponía, `T97313346W` bonsái) |
+| Venta | Hotmart (checkout `J97312812A` hidroponía desde 10/11 —antes `W99083833C`—, `T97313346W` bonsái) |
 | Copia canónica del vault | `tomixrecoil/eugenia-carritos` → `Whapi/` |
 
 
@@ -204,7 +204,8 @@ flowchart LR
 
 Esta documentación se armó leyendo **todo** el código de los tres repositorios que hay en
 GitHub (`eugenia-produccion`, `eugenia-carritos`, `sylvana-jarvis`) al 01/11/2026, y se actualizó con el
-export nuevo de `eugenia-produccion` del 04/11/2026 (commits `167545e` y `7c00018`).
+export nuevo de `eugenia-produccion` del 04/11/2026 (commits `167545e` y `7c00018`) y con los commits del 08 y 10/11
+(`9955421`, `34fe24d`, `a24d634`, `5430ccc`, `9332708`).
 
 > [!warning] Lo que NO estaba disponible
 > El código fuente del **Worker de Cloudflare que atiende WhatsApp** (carpeta
@@ -275,8 +276,8 @@ automáticamente por **Eugenia**, asesora de ventas con nombre humano, para dos 
 
 | Nicho | Negocio | Producto | Checkout Hotmart | Página FB |
 |---|---|---|---|---|
-| `hidroponia` | Ecosistema Hidropónico | Curso Completo de Hidroponía (+32 h) | `W99083833C` | `615394648318530` |
-| `bonsai` | Bonsái en Casa | Bonsai en casa desde cero (antes «El Arte del Bonsái»; +6 h, 3 cursos en 1) | `T97313346W` (landing `conocimientosdigital.com/bonsai/`) | `620810857774404` |
+| `hidroponia` | Ecosistema Hidropónico | Curso Completo de Hidroponía (+32 h) | `J97312812A` (desde 10/11; antes `W99083833C`) | `615394648318530` |
+| `bonsai` | Bonsái en Casa | Bonsai en casa desde cero (antes «El Arte del Bonsái»; +6 h, 3 cursos en 1) | `T97313346W` (la landing también apunta al checkout desde 08/11) | `620810857774404` |
 
 Portfolio comercial (Business Manager): `450083674862372`. Descuento por nicho: 80 % (solo si dicen "caro").
 
@@ -296,6 +297,7 @@ Cliente → WhatsApp Cloud API (número en COEXISTENCIA con la app WhatsApp Busi
 - **Tokens**: `WHATSAPP_TOKEN` = usuario de sistema, no vence, también deriva page tokens (`config.token_de_pagina`). `WHATSAPP_PHONE_ID`, `WHATSAPP_WABA_ID`, `META_APP_SECRET`.
 - **Bóveda de credenciales** (02/11/2026): `panel/boveda_produccion.json` en R2, cifrada AES-GCM; GitHub la abre con `BOVEDA_PRODUCCION_KEY` (`r2io.cargar_credenciales`). Los ajustes de nicho del panel viajan a `state/nichos/<nicho>.yaml`.
 - **Interruptores por nicho** en `state/toggles.json`: `produccion`, `encolado`, `fb`, `ig`, `yt`, `horas`. El Worker (`publicarDeStock`) los respeta y anota lo publicado en `stock/publicados.json`.
+- **Voces de los reels** (10/11): solo ElevenLabs (Antonio → Antoni, 5 cuentas); Charon fuera ("no vende").
 - **PC Windows "MYX"**: `marketing-agent/` (código real del Worker en `cloudflare-worker/`, panel `webapp.py`, `.env`). **No está en GitHub.**
 - **GitHub Actions**: 01:00 catalogar fuentes, 02:00 producir reels, 07:00 carritos (ART).
 - **Coexistencia**: Tomix ve y contesta desde el celular; sus mensajes llegan como `smb_message_echoes`. La app debe abrirse cada ≤14 días. 20 msg/s.
@@ -303,7 +305,8 @@ Cliente → WhatsApp Cloud API (número en COEXISTENCIA con la app WhatsApp Busi
 
 ## Reglas de Eugenia que NUNCA se rompen
 
-- Precio **exacto** con centavos (`{{PRECIO}}` USD, pago único). Sin urgencias, cupos ni "gratis".
+- Precio **exacto**: en la **moneda local** del cliente cuando el contexto la trae (bloque `[PRECIO — REGLA ABSOLUTA]`), si no `{{PRECIO}}` USD, pago único. Nunca cupos ni "gratis". Bonsái: cero urgencia. Hidroponía (desde 10/11): se puede decir que el precio con descuento "no se mantiene para siempre", sin inventar fechas.
+- Hidroponía (prompt del 10/11, basado en ventas reales): sin preguntas de descubrimiento; link desde el primer mensaje si pide info o precio; las **3 certezas** (moneda local · acceso inmediato por correo · pago único de por vida); seguimiento "¿pudiste acceder?" en el mensaje siguiente; guía de pago trabado (tarjeta rechazada, OXXO, no le llegó); bonos/extras se ofrecen.
 - Link solo, en su renglón, al final (para la tarjeta de preview); nunca `[texto](url)`; uno por mensaje.
 - Español neutro, sin voseo ni argentinismos; 3–4 líneas, < 500 caracteres; 1–3 emojis; sin negritas.
 - Nunca "¿en qué te ayudo?" (57 % vs 73 % con pregunta concreta). Nunca usar un nombre que el cliente no dio.
@@ -1140,7 +1143,7 @@ acá está **la estructura y el porqué** de cada bloque.
 |---|---|---|
 | Negocio | Ecosistema Hidropónico | Bonsái en Casa |
 | Producto | Curso Completo de Hidroponía (+32 h) | Bonsai en casa desde cero (antes «El Arte del Bonsái»; +6 h, 3 cursos en 1, +2.585 alumnos) |
-| Link por defecto | `https://pay.hotmart.com/W99083833C?checkoutMode=10` | `https://conocimientosdigital.com/bonsai/` |
+| Link por defecto | `https://pay.hotmart.com/J97312812A?checkoutMode=10` (desde 10/11) | `https://conocimientosdigital.com/bonsai/` en el prompt (el nicho ya apunta al checkout `T97313346W`) |
 | Emoji | 🌱 | 🌿 |
 | Vocabulario prohibido | — | "cultivo, cosecha, sembrar, huerta, tu sistema…" |
 | Apertura | Pregunta concreta sobre lo que escribió; **prohibido** preguntar por el espacio (desde 28/08) | "¿Ya tienes un bonsái en casa o quieres empezar por tu primero?" |
@@ -1150,6 +1153,30 @@ acá está **la estructura y el porqué** de cada bloque.
 > Antes el 60 % estaba **clavado** en el prompt del Worker para todos; los leads de
 > hidroponía escuchaban 60 cuando la oferta real era 80. Ahora sale de `descuento:` en el
 > YAML del nicho; vacío o 0 = no mencionar descuento. ✅ (`config.py:128-132`)
+
+
+## Hidroponía: prompt reescrito el 10/11/2026 (✅ commit `5430ccc`)
+
+El `venta_hidroponia.txt` se reescribió entero "a partir de las ventas cerradas reales".
+**Lo de arriba sigue valiendo para bonsái**; para hidroponía manda esto:
+
+| Antes | Ahora (10/11) |
+|---|---|
+| 1 pregunta de calificación, link en el 2°–3° mensaje | **Cero preguntas de descubrimiento** ("en las ventas ganadoras no se hizo ninguna"). Si pide info o precio, el **primer** mensaje lleva qué es + 3 certezas + link |
+| Precio en USD con centavos | **Moneda local** si el contexto la trae (`[PRECIO — REGLA ABSOLUTA]`, entre guion bajo); si no, `_{{PRECIO}} USD_` + "lo pagás en tu moneda en el checkout" |
+| Prohibida toda urgencia | Se puede decir que el precio con descuento **no se mantiene para siempre** ("muchos lo piensan demasiado y luego pagan más"), sin fechas ni cupos |
+| Después del link, callarse | En el **mensaje siguiente** asumir que avanzó: "¿Pudiste acceder?", "¿Pudiste ver la opción de pago?" |
+| Emojis 1–3, muy breve | Cálido y entusiasta, 2–4 emojis (🌱🙌👇👉), 2–6 líneas; largo solo para info, qué incluye o pasos de pago |
+| Venezuela → Western Union | **Venezuela y Nicaragua** → Western Union (`{{DATOS_COBRO}}`) |
+
+Bloques nuevos:
+
+- **Las 3 certezas** que cierran: pagás en tu moneda local · acceso inmediato por correo · pago único de por vida.
+- **Respuestas que cerraron ventas**: textos casi literales para "me gustaría información", "¿cómo envían el curso?", débito/métodos de pago, presencial, grabado, duración, materiales en mi país, principiantes, tipos de sistema, empezar el mismo día, terreno grande, nombre del curso ("Hidroponía | Curso para 2025").
+- **Objeciones reales**: grupos/soporte (soporte **1 a 1**, no hay grupo: no inventarlo), "lo hablo con mi esposa" (celebrarlo, el acceso se comparte), "¿pago al recibir los libros?" (es digital, llega al instante), bonos aparte (se suman al total), tiempo, pensar (garantía 7 días), caro, juntar dinero, hardship.
+- **Pago trabado = la venta más caliente**: tarjeta rechazada → reintentar u otro método (efectivo/OXXO/transferencia AR/Western Union); **OXXO en 4 pasos**; "pagué y no me llegó" → pedir el correo, revisar spam; "no abren los videos" → actualizar o descargar.
+- Producto descrito en **3 módulos**: teórico, práctico, emprendimiento.
+- Ya **no** lleva los bloques fijos de arriba (formato de enlace, cuándo cerrar, etc.) ni la lista larga de prohibiciones: el tono pasa de "no espantar" a "facilitar el pago".
 
 
 ---
@@ -1164,7 +1191,7 @@ desde el panel (pestaña **Reglas**).
 ✅ Archivos: `prompts/hidroponia_reglas.json`, `prompts/bonsai_reglas.json`
 (formato `{"regla": {"activa": bool, "texto": ""}}`; `texto` permite personalizar el mensaje que usa la regla).
 
-## Estado al 04/11/2026
+## Estado al 10/11/2026
 
 | Regla | Hidroponía | Bonsái | Qué hace (🟡 deducido del nombre + el prompt) |
 |---|:-:|:-:|---|
@@ -1172,7 +1199,7 @@ desde el panel (pestaña **Reglas**).
 | `post_separar_cta_transfer` | ✅ on | ✅ on | Separa el llamado a la acción del bloque de transferencia/cobro en mensajes/renglones distintos |
 | `post_pausa_link` | ✅ on | ✅ on | Manda el link **aparte**, con una pausa breve, para que la tarjeta de preview se vea sola |
 | `post_sacar_link_1` | ✅ on | — | Saca el link del **primer** mensaje de la charla (no se manda link en el saludo) |
-| `post_sin_link_temprano` | ✅ on | — | Saca el link si todavía no hubo señal de interés |
+| `post_sin_link_temprano` | ⛔ off (desde 10/11, va con el prompt nuevo que manda el link de entrada) | — | Saca el link si todavía no hubo señal de interés |
 | `post_link_si_lo_pide` | ✅ on | — | Si el cliente pidió el link/precio y el modelo no lo puso, lo agrega |
 | `post_forzar_saludo` | ✅ on | — | Asegura el saludo por hora local en el primer mensaje |
 | `post_completar_bloque_transfer` | ✅ on | — | Si menciona transferencia (AR) completa el bloque con alias/CBU/banco/monto (solo si están **los cuatro**) |
@@ -1382,7 +1409,7 @@ Hace que la demora del LLM se perciba humana. (No confirmado que tu Worker lo ha
 
 1. Toma `prompts/venta_<nicho>.txt` (copia en el Worker / R2; se edita en el panel).
 2. Reemplaza `{{PRECIO}}`, `{{QUE_INCLUYE}}`, `{{DATOS_COBRO}}`.
-3. Agrega contexto: **hora local** del cliente (por prefijo de país del `wa_id`: 52 México, 57 Colombia, 51 Perú, 58 Venezuela, 54 Argentina…), país, si es primer mensaje.
+3. Agrega contexto: **precio en la moneda local** del cliente (bloque `[PRECIO — REGLA ABSOLUTA]`, ✅ nombrado en `venta_hidroponia.txt` del 10/11; en bonsái regla `ctx_precio_pais`), **hora local** del cliente (por prefijo de país del `wa_id`: 52 México, 57 Colombia, 51 Perú, 58 Venezuela, 54 Argentina…), país, si es primer mensaje.
 4. Agrega `[SITUACIÓN]` según el estado (p. ej. "dijo que está caro → mencionar el {descuento}% una sola vez"; "Argentina quiere pagar → ofrecer transferencia con ALIAS/CBU/BANCO/MONTO"; "Venezuela → Western Union").
 5. Agrega el catálogo de otros cursos.
 6. Arma `messages = [system, …historial (últimos N turnos), user]`.
@@ -1684,7 +1711,7 @@ flowchart LR
 | Paso | Detalle |
 |---|---|
 | Fuentes | Videos de TikTok catalogados (`fuentes_nube.py`, `catalogar_fuente.py`); Gemini revisa |
-| Producción | `produccion_nube.py`: cupo diario repartido entre nichos (ver "Reparto"), hasta 20 en stock; voz Antonio (ElevenLabs, 5 cuentas) → Charon (Google) → voz gratis; logo y mockup |
+| Producción | `produccion_nube.py`: cupo diario repartido entre nichos (ver "Reparto"), hasta 20 en stock; voz **solo ElevenLabs** (Antonio → Antoni, 5 cuentas; Charon fuera desde 10/11: "no vende") → voz gratis; logo y mockup; **portada** = el cuadro más llamativo del video terminado (`src/portada.py`, 08/11) |
 | Copy | Gemini + bloque de oferta fijo + "💬 Comenta CULTIVO/BONSAI y te mando el link por privado 📩" |
 | Stock | `armar_stock.agregar()` sube `reels/<id>.mp4` + fila en `stock/index.json` |
 | Publicación | Worker (`publicarDeStock`): a las horas de `state/toggles.json` (default 6 y 18 ART) si `encolado` está prendido, solo en las redes con `fb`/`ig` prendidos; o la PC con `publisher.publicar_reel` (FB con botón WA, IG directo o encolado, YouTube) |
@@ -1693,6 +1720,8 @@ flowchart LR
 | Voz y subtítulos (02–04/11) | Se eliminó la prueba A/B (sistema A/B). Subtítulos estilo "viral #1": 1 palabra por pantalla, Baloo 2 ExtraBold 234 px, color `00EEFF`, minúsculas. Sincronía por palabra con **Whisper de Cloudflare** (`/whisper` de la puerta) |
 | Ajustes del panel → nube | `state/nichos/<nicho>.yaml` + bóveda cifrada (`panel/boveda_produccion.json`) |
 | YouTube (02/11) | `subir_youtube_nube.py` al final del workflow: sube lo que el Worker anotó en `stock/publicados.json`, solo nichos con `yt` prendido y canal conectado, máx. por corrida por cupo de YouTube |
+| Guiones (08/11) | Ganchos genéricos prohibidos en bonsái, formatos con dato concreto, referencia y estructuras copian los reels de junio; cada reel guarda su descripción y fuente |
+| Dependencias | `google-genai<3` (la 3.0 rompía la voz de Charon) |
 | Idempotencia | registro con `parcial=True` antes de publicar; `intentos` por plataforma |
 
 
@@ -1987,7 +2016,9 @@ URL de webhook resultante: `https://eugenia-whatsapp.<tu-subdominio>.workers.dev
 | 1 | `npm test` (simulación) | Todas las líneas como en [[61 - Código de referencia - Worker WhatsApp#Correr la prueba]] |
 | 2 | Meta → "Verificar y guardar" webhook | OK |
 | 3 | Escribir "Hola, quiero aprender las técnicas del Bonsái" desde un número de prueba | En 2–8 s: saludo por hora local, **sin** presentarse largo, **una** pregunta concreta, **sin** link |
-| 4 | Preguntar "¿cuánto sale?" | Precio **exacto** con centavos + link **solo en su renglón**, con tarjeta de preview y `sck=wa-…` |
+| 4 | Preguntar "¿cuánto sale?" | Precio **exacto** (en moneda local si el contexto la trae) + link **solo en su renglón**, con tarjeta de preview y `sck=wa-…` |
+| 4b | (Hidroponía) "Me gustaría información" | En el **primer** mensaje: qué es + 3 certezas + link. Sin preguntas de descubrimiento. En el siguiente: "¿Pudiste acceder?" |
+| 4c | (Hidroponía) "Quiero pagar en OXXO" | Link + los 4 pasos de OXXO |
 | 5 | Decir "está caro" | Menciona el descuento del nicho una vez, sin urgencia, y reencuadra |
 | 6 | Decir "no tengo trabajo, de verdad no puedo" | Despedida cálida, **sin** link ni precio |
 | 7 | Escribir "hola Sylvana" | No la llama Sylvana |
@@ -2143,6 +2174,7 @@ toque Whapi agrega una línea acá.** Lo más nuevo arriba.
 
 | Fecha | Quién | Qué |
 |---|---|---|
+| 2026-11-13 | Claude (Claude Code, nube) | Documentados los commits del 08 y 10/11: prompt de ventas de hidroponía reescrito (ventas reales, 3 certezas, moneda local, pago trabado, OXXO, Nicaragua), checkout `J97312812A`, `post_sin_link_temprano` apagada, Charon fuera de los reels, portada automática. Notion actualizado. |
 | 2026-11-04 | Claude (Claude Code, nube) | El export de las 12:30 regeneró `eugenia-produccion` y borró el vault y el PR #1. Copia canónica movida a `eugenia-carritos`; vault restaurado en `eugenia-produccion` sobre el `main` nuevo; documentado el rediseño del 02/11 (bóveda cifrada, `state/nichos`, interruptores fb/ig/yt, `publicarDeStock`, `stock/publicados.json`, YouTube desde la nube, `/whisper`, `ctx_precio_pais`, producto bonsái renombrado, fin de XTTS_PUERTOS y del A/B); documento completo subido a Drive en 4 partes. |
 | 2026-11-01 | Claude (Claude Code, nube) | Se replicó Whapi "en todos lados": `CLAUDE.md` + skill `.claude/skills/whapi/` en `eugenia-produccion`, `eugenia-carritos` y `sylvana-jarvis`; copia completa del vault en `eugenia-carritos/Whapi/`; memoria + página en Notion (y página «About Tomix» actualizada); carpeta «Whapi» en Google Drive con el resumen, el pipeline y la guía (el vault completo queda en GitHub). Nota nueva [[03 - Contexto para Claude]]. |
 | 2026-11-01 | Claude (Claude Code, nube) | Creación del vault (37 notas), Worker de referencia probado, documento consolidado. PR `tomixrecoil/eugenia-produccion#1`. |
@@ -2166,6 +2198,8 @@ toque Whapi agrega una línea acá.** Lo más nuevo arriba.
 | 2026-10-28 | Producción en GitHub Actions, puerta R2, "Comenta QUIERO", checkout `W99083833C` |
 | 2026-11-01 | Palabra por nicho (CULTIVO/BONSAI), horarios desde toggles, mails de aviso apagados, ventas de Hotmart las sube la PC |
 | 2026-11-02 | Rediseño: bóveda de credenciales en R2, ajustes de nicho a la nube, interruptores fb/ig/yt, YouTube desde GitHub, reparto parejo de producción, subtítulos estilo viral, fin del A/B |
+| 2026-11-08 | Guiones: ganchos genéricos prohibidos en bonsái, formatos con dato; portada automática; landing de los dos nichos → checkout |
+| 2026-11-10 | Prompt de ventas de hidroponía nuevo (ventas reales), checkout `J97312812A`, `post_sin_link_temprano` off, Charon fuera, `google-genai<3` |
 | 2026-11-04 | Whisper de Cloudflare para subtítulos por palabra; producto de bonsái → «Bonsai en casa desde cero»; regla `ctx_precio_pais`; export regenera `eugenia-produccion` |
 
 
@@ -2206,5 +2240,8 @@ Cualquiera de estas opciones alcanza:
 - [ ] Qué hace exactamente `ctx_precio_pais` y de dónde saca los precios por país.
 - [ ] ¿Sigue en uso el XTTS local para las notas de voz?
 - [ ] Que `exportar_produccion.py` conserve `Whapi/`, `CLAUDE.md` y `.claude/` (hoy los borra).
+
+- [ ] Quién arma el bloque `[PRECIO — REGLA ABSOLUTA]` (precio en moneda local) para hidroponía y si reemplaza a `ctx_precio_pais`.
+- [ ] ¿Hay `hidroponia_incluye_ar.txt` con contenido? (en el export está vacío: `{{QUE_INCLUYE}}` de hidroponía podría salir vacío).
 
 Cuando se resuelvan, actualizar las notas marcadas con 🟡/❓ y cambiarlas a ✅.

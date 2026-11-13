@@ -44,7 +44,7 @@ acá está **la estructura y el porqué** de cada bloque.
 |---|---|---|
 | Negocio | Ecosistema Hidropónico | Bonsái en Casa |
 | Producto | Curso Completo de Hidroponía (+32 h) | Bonsai en casa desde cero (antes «El Arte del Bonsái»; +6 h, 3 cursos en 1, +2.585 alumnos) |
-| Link por defecto | `https://pay.hotmart.com/W99083833C?checkoutMode=10` | `https://conocimientosdigital.com/bonsai/` |
+| Link por defecto | `https://pay.hotmart.com/J97312812A?checkoutMode=10` (desde 10/11) | `https://conocimientosdigital.com/bonsai/` en el prompt (el nicho ya apunta al checkout `T97313346W`) |
 | Emoji | 🌱 | 🌿 |
 | Vocabulario prohibido | — | "cultivo, cosecha, sembrar, huerta, tu sistema…" |
 | Apertura | Pregunta concreta sobre lo que escribió; **prohibido** preguntar por el espacio (desde 28/08) | "¿Ya tienes un bonsái en casa o quieres empezar por tu primero?" |
@@ -54,3 +54,27 @@ acá está **la estructura y el porqué** de cada bloque.
 > Antes el 60 % estaba **clavado** en el prompt del Worker para todos; los leads de
 > hidroponía escuchaban 60 cuando la oferta real era 80. Ahora sale de `descuento:` en el
 > YAML del nicho; vacío o 0 = no mencionar descuento. ✅ (`config.py:128-132`)
+
+
+## Hidroponía: prompt reescrito el 10/11/2026 (✅ commit `5430ccc`)
+
+El `venta_hidroponia.txt` se reescribió entero "a partir de las ventas cerradas reales".
+**Lo de arriba sigue valiendo para bonsái**; para hidroponía manda esto:
+
+| Antes | Ahora (10/11) |
+|---|---|
+| 1 pregunta de calificación, link en el 2°–3° mensaje | **Cero preguntas de descubrimiento** ("en las ventas ganadoras no se hizo ninguna"). Si pide info o precio, el **primer** mensaje lleva qué es + 3 certezas + link |
+| Precio en USD con centavos | **Moneda local** si el contexto la trae (`[PRECIO — REGLA ABSOLUTA]`, entre guion bajo); si no, `_{{PRECIO}} USD_` + "lo pagás en tu moneda en el checkout" |
+| Prohibida toda urgencia | Se puede decir que el precio con descuento **no se mantiene para siempre** ("muchos lo piensan demasiado y luego pagan más"), sin fechas ni cupos |
+| Después del link, callarse | En el **mensaje siguiente** asumir que avanzó: "¿Pudiste acceder?", "¿Pudiste ver la opción de pago?" |
+| Emojis 1–3, muy breve | Cálido y entusiasta, 2–4 emojis (🌱🙌👇👉), 2–6 líneas; largo solo para info, qué incluye o pasos de pago |
+| Venezuela → Western Union | **Venezuela y Nicaragua** → Western Union (`{{DATOS_COBRO}}`) |
+
+Bloques nuevos:
+
+- **Las 3 certezas** que cierran: pagás en tu moneda local · acceso inmediato por correo · pago único de por vida.
+- **Respuestas que cerraron ventas**: textos casi literales para "me gustaría información", "¿cómo envían el curso?", débito/métodos de pago, presencial, grabado, duración, materiales en mi país, principiantes, tipos de sistema, empezar el mismo día, terreno grande, nombre del curso ("Hidroponía | Curso para 2025").
+- **Objeciones reales**: grupos/soporte (soporte **1 a 1**, no hay grupo: no inventarlo), "lo hablo con mi esposa" (celebrarlo, el acceso se comparte), "¿pago al recibir los libros?" (es digital, llega al instante), bonos aparte (se suman al total), tiempo, pensar (garantía 7 días), caro, juntar dinero, hardship.
+- **Pago trabado = la venta más caliente**: tarjeta rechazada → reintentar u otro método (efectivo/OXXO/transferencia AR/Western Union); **OXXO en 4 pasos**; "pagué y no me llegó" → pedir el correo, revisar spam; "no abren los videos" → actualizar o descargar.
+- Producto descrito en **3 módulos**: teórico, práctico, emprendimiento.
+- Ya **no** lleva los bloques fijos de arriba (formato de enlace, cuándo cerrar, etc.) ni la lista larga de prohibiciones: el tono pasa de "no espantar" a "facilitar el pago".

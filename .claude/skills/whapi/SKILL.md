@@ -18,6 +18,7 @@ nunca escribir valores de secretos, solo nombres.
 
 
 
+
 ## Resumen (copia de Whapi/03 - Contexto para Claude.md)
 
 > **Whapi es el proyecto más importante de Tomix.** Cualquier Claude (Code, VS Code,
@@ -37,8 +38,8 @@ automáticamente por **Eugenia**, asesora de ventas con nombre humano, para dos 
 
 | Nicho | Negocio | Producto | Checkout Hotmart | Página FB |
 |---|---|---|---|---|
-| `hidroponia` | Ecosistema Hidropónico | Curso Completo de Hidroponía (+32 h) | `W99083833C` | `615394648318530` |
-| `bonsai` | Bonsái en Casa | Bonsai en casa desde cero (antes «El Arte del Bonsái»; +6 h, 3 cursos en 1) | `T97313346W` (landing `conocimientosdigital.com/bonsai/`) | `620810857774404` |
+| `hidroponia` | Ecosistema Hidropónico | Curso Completo de Hidroponía (+32 h) | `J97312812A` (desde 10/11; antes `W99083833C`) | `615394648318530` |
+| `bonsai` | Bonsái en Casa | Bonsai en casa desde cero (antes «El Arte del Bonsái»; +6 h, 3 cursos en 1) | `T97313346W` (la landing también apunta al checkout desde 08/11) | `620810857774404` |
 
 Portfolio comercial (Business Manager): `450083674862372`. Descuento por nicho: 80 % (solo si dicen "caro").
 
@@ -58,6 +59,7 @@ Cliente → WhatsApp Cloud API (número en COEXISTENCIA con la app WhatsApp Busi
 - **Tokens**: `WHATSAPP_TOKEN` = usuario de sistema, no vence, también deriva page tokens (`config.token_de_pagina`). `WHATSAPP_PHONE_ID`, `WHATSAPP_WABA_ID`, `META_APP_SECRET`.
 - **Bóveda de credenciales** (02/11/2026): `panel/boveda_produccion.json` en R2, cifrada AES-GCM; GitHub la abre con `BOVEDA_PRODUCCION_KEY` (`r2io.cargar_credenciales`). Los ajustes de nicho del panel viajan a `state/nichos/<nicho>.yaml`.
 - **Interruptores por nicho** en `state/toggles.json`: `produccion`, `encolado`, `fb`, `ig`, `yt`, `horas`. El Worker (`publicarDeStock`) los respeta y anota lo publicado en `stock/publicados.json`.
+- **Voces de los reels** (10/11): solo ElevenLabs (Antonio → Antoni, 5 cuentas); Charon fuera ("no vende").
 - **PC Windows "MYX"**: `marketing-agent/` (código real del Worker en `cloudflare-worker/`, panel `webapp.py`, `.env`). **No está en GitHub.**
 - **GitHub Actions**: 01:00 catalogar fuentes, 02:00 producir reels, 07:00 carritos (ART).
 - **Coexistencia**: Tomix ve y contesta desde el celular; sus mensajes llegan como `smb_message_echoes`. La app debe abrirse cada ≤14 días. 20 msg/s.
@@ -65,7 +67,8 @@ Cliente → WhatsApp Cloud API (número en COEXISTENCIA con la app WhatsApp Busi
 
 ## Reglas de Eugenia que NUNCA se rompen
 
-- Precio **exacto** con centavos (`{{PRECIO}}` USD, pago único). Sin urgencias, cupos ni "gratis".
+- Precio **exacto**: en la **moneda local** del cliente cuando el contexto la trae (bloque `[PRECIO — REGLA ABSOLUTA]`), si no `{{PRECIO}}` USD, pago único. Nunca cupos ni "gratis". Bonsái: cero urgencia. Hidroponía (desde 10/11): se puede decir que el precio con descuento "no se mantiene para siempre", sin inventar fechas.
+- Hidroponía (prompt del 10/11, basado en ventas reales): sin preguntas de descubrimiento; link desde el primer mensaje si pide info o precio; las **3 certezas** (moneda local · acceso inmediato por correo · pago único de por vida); seguimiento "¿pudiste acceder?" en el mensaje siguiente; guía de pago trabado (tarjeta rechazada, OXXO, no le llegó); bonos/extras se ofrecen.
 - Link solo, en su renglón, al final (para la tarjeta de preview); nunca `[texto](url)`; uno por mensaje.
 - Español neutro, sin voseo ni argentinismos; 3–4 líneas, < 500 caracteres; 1–3 emojis; sin negritas.
 - Nunca "¿en qué te ayudo?" (57 % vs 73 % con pregunta concreta). Nunca usar un nombre que el cliente no dio.

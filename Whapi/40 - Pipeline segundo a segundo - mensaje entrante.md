@@ -108,7 +108,7 @@ Hace que la demora del LLM se perciba humana. (No confirmado que tu Worker lo ha
 
 1. Toma `prompts/venta_<nicho>.txt` (copia en el Worker / R2; se edita en el panel).
 2. Reemplaza `{{PRECIO}}`, `{{QUE_INCLUYE}}`, `{{DATOS_COBRO}}`.
-3. Agrega contexto: **hora local** del cliente (por prefijo de país del `wa_id`: 52 México, 57 Colombia, 51 Perú, 58 Venezuela, 54 Argentina…), país, si es primer mensaje.
+3. Agrega contexto: **precio en la moneda local** del cliente (bloque `[PRECIO — REGLA ABSOLUTA]`, ✅ nombrado en `venta_hidroponia.txt` del 10/11; en bonsái regla `ctx_precio_pais`), **hora local** del cliente (por prefijo de país del `wa_id`: 52 México, 57 Colombia, 51 Perú, 58 Venezuela, 54 Argentina…), país, si es primer mensaje.
 4. Agrega `[SITUACIÓN]` según el estado (p. ej. "dijo que está caro → mencionar el {descuento}% una sola vez"; "Argentina quiere pagar → ofrecer transferencia con ALIAS/CBU/BANCO/MONTO"; "Venezuela → Western Union").
 5. Agrega el catálogo de otros cursos.
 6. Arma `messages = [system, …historial (últimos N turnos), user]`.

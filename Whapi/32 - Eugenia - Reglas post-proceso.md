@@ -11,7 +11,7 @@ desde el panel (pestaña **Reglas**).
 ✅ Archivos: `prompts/hidroponia_reglas.json`, `prompts/bonsai_reglas.json`
 (formato `{"regla": {"activa": bool, "texto": ""}}`; `texto` permite personalizar el mensaje que usa la regla).
 
-## Estado al 04/11/2026
+## Estado al 10/11/2026
 
 | Regla | Hidroponía | Bonsái | Qué hace (🟡 deducido del nombre + el prompt) |
 |---|:-:|:-:|---|
@@ -19,7 +19,7 @@ desde el panel (pestaña **Reglas**).
 | `post_separar_cta_transfer` | ✅ on | ✅ on | Separa el llamado a la acción del bloque de transferencia/cobro en mensajes/renglones distintos |
 | `post_pausa_link` | ✅ on | ✅ on | Manda el link **aparte**, con una pausa breve, para que la tarjeta de preview se vea sola |
 | `post_sacar_link_1` | ✅ on | — | Saca el link del **primer** mensaje de la charla (no se manda link en el saludo) |
-| `post_sin_link_temprano` | ✅ on | — | Saca el link si todavía no hubo señal de interés |
+| `post_sin_link_temprano` | ⛔ off (desde 10/11, va con el prompt nuevo que manda el link de entrada) | — | Saca el link si todavía no hubo señal de interés |
 | `post_link_si_lo_pide` | ✅ on | — | Si el cliente pidió el link/precio y el modelo no lo puso, lo agrega |
 | `post_forzar_saludo` | ✅ on | — | Asegura el saludo por hora local en el primer mensaje |
 | `post_completar_bloque_transfer` | ✅ on | — | Si menciona transferencia (AR) completa el bloque con alias/CBU/banco/monto (solo si están **los cuatro**) |

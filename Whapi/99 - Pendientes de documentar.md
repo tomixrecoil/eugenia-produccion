@@ -37,4 +37,7 @@ Cualquiera de estas opciones alcanza:
 - [ ] ¿Sigue en uso el XTTS local para las notas de voz?
 - [ ] Que `exportar_produccion.py` conserve `Whapi/`, `CLAUDE.md` y `.claude/` (hoy los borra).
 
+- [ ] Quién arma el bloque `[PRECIO — REGLA ABSOLUTA]` (precio en moneda local) para hidroponía y si reemplaza a `ctx_precio_pais`.
+- [ ] ¿Hay `hidroponia_incluye_ar.txt` con contenido? (en el export está vacío: `{{QUE_INCLUYE}}` de hidroponía podría salir vacío).
+
 Cuando se resuelvan, actualizar las notas marcadas con 🟡/❓ y cambiarlas a ✅.

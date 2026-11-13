@@ -6,7 +6,8 @@ tags: [whapi, metodologia]
 
 Esta documentación se armó leyendo **todo** el código de los tres repositorios que hay en
 GitHub (`eugenia-produccion`, `eugenia-carritos`, `sylvana-jarvis`) al 01/11/2026, y se actualizó con el
-export nuevo de `eugenia-produccion` del 04/11/2026 (commits `167545e` y `7c00018`).
+export nuevo de `eugenia-produccion` del 04/11/2026 (commits `167545e` y `7c00018`) y con los commits del 08 y 10/11
+(`9955421`, `34fe24d`, `a24d634`, `5430ccc`, `9332708`).
 
 > [!warning] Lo que NO estaba disponible
 > El código fuente del **Worker de Cloudflare que atiende WhatsApp** (carpeta
