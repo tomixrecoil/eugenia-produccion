@@ -19,9 +19,9 @@ youtube_source_3: ''
 carpeta_local: C:/Users/Tomix/Desktop/S e r v i c i o s/Hydropony/@Agrotonomy
 solo_carpeta_local: true
 fuentes_apagadas: []
-cta_link: https://pay.hotmart.com/J97312812A?checkoutMode=10
-cta_modo: checkout
-cta_landing: https://pay.hotmart.com/J97312812A?checkoutMode=10
+cta_link: https://conocimientosdigital.pages.dev/hidroponia
+cta_modo: landing
+cta_landing: https://conocimientosdigital.pages.dev/hidroponia
 cta_checkout: https://pay.hotmart.com/J97312812A?checkoutMode=10
 copy_engine: gemini
 tema: hidroponía
@@ -41,6 +41,7 @@ voiceover_when_silent: true
 english_policy: dub
 elevenlabs_voice: htFfPSZGJwjBv1CL0aMD
 elevenlabs_model: eleven_multilingual_v2
+voz_edge: ''
 voice_speed: 1.2
 add_mockup: true
 add_logo: true
