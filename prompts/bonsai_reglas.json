@@ -14,5 +14,9 @@
  "ctx_precio_pais": {
   "activa": true,
   "texto": ""
+ },
+ "post_sin_link_temprano": {
+  "texto": "",
+  "activa": false
  }
 }

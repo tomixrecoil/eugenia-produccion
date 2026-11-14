@@ -151,8 +151,10 @@ def _process_media(video_path: Path, analysis_text: str, niche: Niche,
             # o una cuenta sin cuota descartaría el reel entero.
             # 10/11 (Tomix: "charon no vende"): Charon FUERA. Antonio -> Antoni.
             intentos = [("ElevenLabs/Antonio", lambda: _eleven(False))]
-            # El último recurso va SIEMPRE al final.
             intentos.append(("voz gratis (Antoni)", lambda: _eleven(True)))
+            # 14/11 (Tomix): Charon vuelve, pero AL FINAL: solo si Antonio y Antoni se quedaron
+            # sin caracteres en las 5 cuentas. Mejor un reel con Charon que ningún reel.
+            intentos.append(("Google/Charon", _charon))
 
             for nombre, fn in intentos:
                 try:

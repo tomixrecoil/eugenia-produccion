@@ -735,6 +735,9 @@ NICHE_FIELDS_DEFAULT = {
     "english_policy": "dub",
     "elevenlabs_voice": VOZ_ELEVENLABS_DEFAULT,
     "elevenlabs_model": "eleven_multilingual_v2",
+    # Voz gratuita de Microsoft fija del nicho (ej. "es-MX-DaliaNeural"). Vacía = ElevenLabs.
+    # La usa producir_stock.sintetizar_voz (14/11: terrarios con Dalia).
+    "voz_edge": "",
     "voice_speed": VELOCIDAD_VOZ_DEFAULT,
     "add_mockup": False,
     "add_logo": False,

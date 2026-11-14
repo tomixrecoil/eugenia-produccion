@@ -584,11 +584,16 @@ def copy_posteo(nicho: str, pista: str, link: str = "", descripcion: str = "",
 # El bloque de oferta lo pone el código, no Gemini: así sale siempre igual
 # (texto de Tomix, 20/10/2026). Solo cambian las horas de video por nicho.
 MARCA_OFERTA = "[BLOQUE_OFERTA]"
-HORAS_VIDEO = {"bonsai": "+6"}
+HORAS_VIDEO = {"bonsai": "+3,5",   # 3 h 41 min reales (Drive, 14/11)
+               # 14/11: las páginas de estos cursos no dicen cuántas horas son. Vacío = la
+               # línea sale sin número (antes heredaban el "+32" de hidroponía: dato falso).
+               "herbologia": "", "terrarios": ""}
 
 
 def bloque_oferta(nicho: str) -> str:
-    return (f"🎥| {HORAS_VIDEO.get(nicho, '+32')} horas de video grabado\n"
+    horas = HORAS_VIDEO.get(nicho, "+32")
+    primera = f"🎥| {horas} horas de video grabado\n" if horas else "🎥| Clases en video grabadas\n"
+    return (primera +
             "📨| Acceso inmediato vía email\n"
             "🌐| 100% Online, sin horarios\n"
             "📥| Material Descargable\n"
@@ -605,7 +610,8 @@ _RE_OFERTA_VIEJA = re.compile(r"📘 ?Aprende más por menos:.*?acceso DE POR VI
 # por mensaje privado (lo hace el Worker: ver analisis/COMENTARIOS_IG.md). La palabra es
 # la misma que dice la voz al cierre (prompts/<nicho>_voz_comun.txt). Tomix, 01/11: antes
 # decía QUIERO para todos y no coincidía con el video.
-PALABRA_COMENTARIO = {"hidroponia": "CULTIVO", "bonsai": "BONSAI"}
+PALABRA_COMENTARIO = {"hidroponia": "CULTIVO", "bonsai": "BONSAI",
+                      "terrarios": "TERRARIO", "herbologia": "SANAR"}   # 14/11, Tomix
 _RE_CTA_VIEJO = re.compile(r"\n*💬 Comenta \w+ y te mando el link por privado 📩[ \t]*")
 
 
@@ -730,6 +736,12 @@ def sintetizar_voz(guion: str, clave: str, niche, solo_charon: bool = False,
 
     voces = carpeta_de("hidroponia") / "_VOCES"
     voces.mkdir(parents=True, exist_ok=True)
+    # Voz gratuita de Microsoft fija por nicho (14/11, Tomix: terrarios = Dalia). Va en
+    # niches/<nicho>.yaml como `voz_edge`. No gasta créditos de ElevenLabs.
+    edge = voz_edge_de(niche)
+    if edge:
+        v, align = voz_edge(guion, edge, voces / f"voz_{clave}.mp3", _velocidad(niche))
+        return v, align, f"Microsoft/{edge}"
     v = align = None
     usada = ""
     if not solo_charon:
@@ -746,10 +758,10 @@ def sintetizar_voz(guion: str, clave: str, niche, solo_charon: bool = False,
                 # Antes se tragaba el motivo: en GitHub las 5 cuentas fallaban sin decir por qué.
                 log.warning("ElevenLabs cuenta %d falló: %s", i, str(e)[:160])
                 continue
-    # 10/11 (Tomix): "charon no vende" — Google AI Studio FUERA de la cascada. Orden:
-    # Antonio (Confident Conversational Latino) -> Antoni. Nada más.
+    # Orden (14/11, Tomix): Antonio (Confident Conversational Latino, solo anda en la
+    # cuenta paga) -> Antoni (las 5 cuentas; también gasta caracteres) -> Charon al final.
     if solo_charon:
-        raise CuotaAgotada("Charon ya no se usa (10/11): solo Antonio y Antoni")
+        raise CuotaAgotada("solo_charon ya no se usa: Charon va al final de la cascada")
     if v is None and sin_voz_no_marca:
         raise CuotaAgotada("Antonio sin cuota ahora; espero la próxima recarga "
                            "antes que usar una voz que no es de la marca")
@@ -769,8 +781,56 @@ def sintetizar_voz(guion: str, clave: str, niche, solo_charon: bool = False,
                 ultimo = e
                 log.warning("Antoni cuenta %d falló: %s", i, str(e)[:160])
         if v is None:
-            raise CuotaAgotada(f"Antonio y Antoni sin cuota en las 5 cuentas ({str(ultimo)[:80]})")
+            # 14/11 (Tomix): Charon vuelve AL FINAL de la cascada. Antoni también gasta los
+            # caracteres de cada cuenta, así que cuando las 5 se vacían no queda otra voz.
+            # Mejor un reel con Charon que ningún reel.
+            try:
+                from src import voz_charon
+                v, align = voz_charon.sintetizar_con_timing(guion, voces / f"voz_{clave}.wav")
+                usada = "Google/Charon (último recurso)"
+            except Exception as e:  # noqa: BLE001
+                raise CuotaAgotada(f"Antonio, Antoni y Charon sin cuota ({str(ultimo)[:60]} / {str(e)[:60]})")
     return v, align, usada
+
+
+def voz_edge_de(niche) -> str:
+    """La voz de Microsoft fija del nicho (`voz_edge` en su yaml), o "" si usa ElevenLabs."""
+    try:
+        return str(config.read_niche_raw(niche.name).get("voz_edge") or "").strip()
+    except Exception:  # noqa: BLE001
+        return ""
+
+
+def voz_edge(guion: str, voz: str, destino: Path, velocidad: float = 1.0):
+    """Voz gratuita de Microsoft (edge-tts). Devuelve (mp3, alignment) con el MISMO formato
+    que ElevenLabs (tiempo de cada carácter), que es lo que usan los subtítulos."""
+    import asyncio
+    import edge_tts
+    palabras = []
+
+    async def correr():
+        com = edge_tts.Communicate(guion, voz, rate=f"{round((velocidad - 1) * 100):+d}%",
+                                   boundary="WordBoundary")
+        with open(destino, "wb") as f:
+            async for ch in com.stream():
+                if ch["type"] == "audio":
+                    f.write(ch["data"])
+                elif ch["type"] == "WordBoundary":
+                    ini = ch["offset"] / 1e7
+                    palabras.append((ch["text"], ini, ini + ch["duration"] / 1e7))
+    asyncio.run(correr())
+    if not palabras:
+        raise RuntimeError(f"edge-tts no devolvió audio con {voz}")
+    chars, t0, t1 = [], [], []
+    for i, (txt, a, b) in enumerate(palabras):
+        if i:
+            chars.append(" "); t0.append(palabras[i - 1][2]); t1.append(a)
+        paso = (b - a) / max(1, len(txt))
+        for j, c in enumerate(txt):
+            chars.append(c); t0.append(a + j * paso); t1.append(a + (j + 1) * paso)
+    log.info("Voz %s guardada -> %s (%d palabras, %.1f s)", voz, destino.name, len(palabras), t1[-1])
+    return destino, {"characters": chars, "character_start_times_seconds": t0,
+                     "character_end_times_seconds": t1}
 
 
 def _audio_con_voz(video: Path) -> bool:
