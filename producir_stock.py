@@ -483,7 +483,7 @@ def fuentes_a_demanda(nicho: str, cuantos: int) -> int:
         # un video suelto sí funciona. Solo de los perfiles que siguen prendidos.
         prendidos = {u.rstrip("/").split("@")[-1] for u in perfiles}
         cand = (r2io.get_json(f"fuentes_src/candidatos/{nicho}.json") or {}).get("videos") or []
-        listados = [{"id": c["id"], "vistas": int(c.get("vistas") or 0),
+        listados = [{"id": c["id"], "vistas": int(c.get("vistas") or 0), "titulo": c.get("titulo") or c["perfil"],
                      "perfil": f"https://www.tiktok.com/@{c['perfil']}"}
                     for c in cand if c.get("perfil") in prendidos]
         log.info("%s: listado de TikTok vacío; uso %d candidatos de R2.", nicho, len(listados))
@@ -529,7 +529,7 @@ def fuentes_a_demanda(nicho: str, cuantos: int) -> int:
         med = audio_voz.analizar(crudo)
         clase = "TRADUCIR" if r["voz"] else "ASMR"
         tramo = cf.tramo(v["vistas"])
-        archivo = f"{_nombre_legible(v['titulo'])}__{v['id']}.mp4"
+        archivo = f"{_nombre_legible(v.get('titulo') or v['id'])}__{v['id']}.mp4"
         final = carpeta_de(nicho) / clase / tramo / archivo
         final.parent.mkdir(parents=True, exist_ok=True)
         crudo.replace(final)
