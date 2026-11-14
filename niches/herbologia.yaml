@@ -1,0 +1,107 @@
+name: herbologia
+tiktok_profile: https://www.tiktok.com/@herbolaria.academia
+scan_count: 60
+top_k: 1
+min_views: 50000
+meta_page_id: '1094407060431618'
+meta_business_id: '450083674862372'
+publish_state: PUBLISHED
+publish_facebook: false
+publish_instagram: false
+publish_youtube: false
+publish_tiktok: false
+tiktok_profile_2: https://www.tiktok.com/@miremedionatural10
+tiktok_profile_3: https://www.tiktok.com/@plantas_medicinal
+tiktok_profile_4: ''
+youtube_source_1: ''
+youtube_source_2: ''
+youtube_source_3: ''
+carpeta_local: ''
+solo_carpeta_local: false
+fuentes_apagadas: []
+cta_link: https://conocimientosdigital.pages.dev/herbologia
+cta_modo: landing
+cta_landing: https://conocimientosdigital.pages.dev/herbologia
+cta_checkout: https://pay.hotmart.com/S98066991C?checkoutMode=10
+copy_engine: gemini
+tema: plantas medicinales
+producto_nombre: Curso de Plantas Medicinales
+negocio: Academia Herbológica
+descuento: 60
+yt_tags: []
+yt_hashtags: ''
+audio_mode: auto
+voiceover_when_silent: true
+english_policy: dub
+elevenlabs_voice: htFfPSZGJwjBv1CL0aMD
+elevenlabs_model: eleven_multilingual_v2
+voz_edge: es-MX-JorgeNeural
+voice_speed: 1.2
+add_mockup: true
+add_logo: true
+logo_file: assets/herbologia_logo.png
+logo_scale: 0.35
+logo_position: top
+mockup_file: assets/herbologia_mockup.png
+mockup_seconds: 12
+mockup_scale: 1.05
+mockup_position: center
+subtitle_font: Baloo 2 ExtraBold
+subtitle_font_size: 234
+subtitle_karaoke: false
+subtitle_popin: false
+subtitle_colores: false
+subtitle_emojis: false
+subtitle_emoji_map: 'agua=💧
+
+  riego=💧
+
+  dinero=💰
+
+  gratis=🎁
+
+  facil=👌
+
+  fácil=👌
+
+  rapido=⚡
+
+  rápido=⚡
+
+  crece=🌱
+
+  crecer=🌱
+
+  planta=🌱
+
+  plantas=🌱
+
+  cultivo=🌱
+
+  cosecha=🌾
+
+  sol=☀️
+
+  casa=🏠
+
+  tiempo=⏰
+
+  gracias=🙏
+
+  increible=🤯
+
+  increíble=🤯
+
+  secreto=🤫
+
+  importante=❗'
+subtitle_outline: 6
+subtitle_margin_v: 670
+subtitle_palabras: 1
+subtitle_color: 00EEFF
+subtitle_minusculas: true
+schedule_enabled: false
+schedule_times:
+- '18:00'
+gemini_prompt_file: prompts/herbologia_gemini.txt
+gpt_prompt_file: prompts/herbologia_gpt.txt

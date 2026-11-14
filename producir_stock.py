@@ -184,12 +184,16 @@ def _no_usar(p: Path) -> bool:
 # alcanza para saber de qué va el curso. Manda sobre el campo `tema` del YAML, que es el
 # nombre pelado.
 TEMA = {"bonsai": "bonsái (arte de árboles en miniatura)",
-        "hidroponia": "hidroponía (cultivo sin tierra)"}
+        "hidroponia": "hidroponía (cultivo sin tierra)",
+        "terrarios": "terrarios (pequeños ecosistemas de plantas dentro de un frasco o vidrio)",
+        "herbologia": "plantas medicinales (herbolaria: cultivar y usar plantas que sanan)"}
 # Solo RESPALDO si el nicho no tiene cta_link cargado. La fuente de verdad es el campo
 # "Link de venta (CTA)" de Ajustes -> Mi producto (switch landing/checkout): lo que
 # Tomix elija ahí sale en el copy de TODOS los posteos, stock incluido.
-CHECKOUT_RESPALDO = {"bonsai": "https://conocimientosdigital.com/bonsai/",
-                     "hidroponia": "https://conocimientosdigital.com/hydroponia/"}
+# 14/11: las páginas de conocimientosdigital.pages.dev, no checkouts de Hotmart (el
+# precio real lo sigue sacando sync_precios.py del checkout; acá no hace falta).
+CHECKOUT_RESPALDO = {n: f"https://conocimientosdigital.pages.dev/{n}"
+                     for n in ("bonsai", "hidroponia", "terrarios", "herbologia")}
 AMBIENTE = 0.22          # cuánto del audio ambiente queda debajo de la voz
 # Ritmo REAL de Antonio a velocidad 1, con datos y números (medido 19/10/2026: 195
 # palabras = 84 s). Las palabras del guion = duración del video x esto x velocidad del
@@ -410,6 +414,130 @@ def _bajar_candidatas(nicho: str, clase: str, maximo: int = 6, filtro=None) -> N
             destino.with_suffix(".txt").write_text(e.get("txt") or "", encoding="utf-8")
         else:
             log.warning("No pude bajar %s de R2.", e["archivo"][:44])
+
+
+# Fuentes A DEMANDA (14/11/2026, Tomix): terrarios y herbología no tienen catálogo (todavía
+# no se sabe qué perfiles sirven, así que NO se catalogan en masa a las 01:00 como
+# hidroponía y bonsái). Cuando a un nicho le faltan fuentes verificadas para la tanda del
+# día, se listan los perfiles de TikTok PRENDIDOS de su yaml (sin bajar nada), se bajan
+# SOLO las que faltan (de más vistas a menos, salteando las ya usadas o catalogadas), se
+# escuchan con Gemini igual que en fuentes_nube y, si se pudieron escuchar, quedan con
+# "revisado2" en la carpeta de siempre y en R2 (fuentes_src + manifiesto) para no
+# rebajarlas. Las que Gemini no pudo escuchar se tiran: sin verificar no se usa nada.
+# Un video con voz queda TRADUCIR (se dobla y se reemplaza el audio, nunca sale en inglés).
+DESCARTADOS = "fuentes_src/descartados.json"
+
+
+def _disponibles(man: list, nicho: str, usados: set, huellas: set) -> int:
+    """Fuentes verificadas y sin usar del nicho en el manifiesto (ASMR o TRADUCIR)."""
+    return sum(1 for e in man if e.get("nicho") == nicho
+               and e.get("clase") in ("ASMR", "TRADUCIR")
+               and "revisado2" in (e.get("txt") or "")
+               and e.get("tid") not in usados and e.get("md5") not in huellas)
+
+
+def _nombre_legible(titulo: str) -> str:
+    """'general' o las primeras palabras del título sin tildes (es la pista del copy)."""
+    import unicodedata
+    t = unicodedata.normalize("NFKD", (titulo or "").lower())
+    t = "".join(c for c in t if not unicodedata.combining(c))
+    pal = [w for w in re.findall(r"[a-z]+", t) if len(w) > 2][:4]
+    return "-".join(pal)[:40] or "general"
+
+
+def fuentes_a_demanda(nicho: str, cuantos: int) -> int:
+    """Nube: si al nicho le faltan fuentes para `cuantos`, baja y verifica SOLO las que
+    faltan. Devuelve cuántas dejó listas. No publica nada ni toca el pipeline viejo."""
+    import r2io
+    import registro_fuentes
+    if not r2io.en_nube():
+        return 0
+    # Solo para los nichos que todavía no tienen catálogo (14/11, pedido de Tomix: "que se
+    # produzcan con los que están en TikTok"). Hidroponía y bonsái usan su catálogo de siempre.
+    if nicho not in ("terrarios", "herbologia"):
+        return 0
+    man = r2io.get_json(MANIFIESTO)
+    man_ok = isinstance(man, list)
+    man = man if man_ok else []
+    usados, huellas = _usados()
+    falta = cuantos - _disponibles(man, nicho, usados, huellas)
+    if falta <= 0:
+        return 0
+    niche = _ficha(nicho)
+    if niche is None:
+        return 0
+    perfiles = [u for u in config.fuentes_de(niche) if "tiktok.com" in (u or "")]
+    if not perfiles:
+        log.info("%s: sin perfiles de TikTok prendidos para buscar fuentes.", nicho)
+        return 0
+    import catalogar_fuente as cf
+    import resolver_dudosos as rd
+    from src import audio_voz, download
+    conocidos = {e.get("tid") for e in man} | usados
+    conocidos |= set(r2io.get_json(DESCARTADOS) or [])
+    vids = [v for v in cf.listar(perfiles) if v["id"] not in conocidos]
+    vids.sort(key=lambda v: -v["vistas"])
+    log.info("%s: faltan %d fuentes; %d videos sin usar en sus perfiles (bajo solo %d).",
+             nicho, falta, len(vids), falta)
+    rd.TEMA = tema_de(nicho)
+    claves = rd._claves()
+    listas = bajados = 0
+    for v in vids[:falta * 3]:              # tope de intentos: una bajada puede fallar
+        if bajados >= falta:
+            break
+        destino_tmp = carpeta_de(nicho) / "_a_demanda"
+        try:
+            crudo = Path(download.download_video(cf._url_video(v), destino_tmp))
+        except Exception as e:  # noqa: BLE001
+            log.warning("No pude bajar %s (%s).", v["id"], str(e)[:80])
+            continue
+        bajados += 1
+        if not _tiene_video(crudo):
+            log.warning("%s bajó sin imagen: lo salteo.", v["id"])
+            crudo.unlink(missing_ok=True)
+            continue
+        if _texto_quemado(crudo):           # antes de gastar una escucha de Gemini
+            log.info("%s tiene texto quemado: lo salteo.", v["id"])
+            crudo.unlink(missing_ok=True)
+            continue
+        h = registro_fuentes.huella(crudo)
+        if h and h in huellas:
+            log.info("%s: mismo contenido que una fuente ya usada.", v["id"])
+            crudo.unlink(missing_ok=True)
+            continue
+        try:
+            r = rd.escuchar(crudo, claves)
+        except Exception as e:  # noqa: BLE001
+            r = None
+            log.warning("No pude escuchar %s (%s).", v["id"], str(e)[:80])
+        if not r or r.get("idioma") in (None, "", "?"):
+            log.warning("%s sin verificar (Gemini no lo escuchó): no lo uso.", v["id"])
+            crudo.unlink(missing_ok=True)
+            continue
+        med = audio_voz.analizar(crudo)
+        clase = "TRADUCIR" if r["voz"] else "ASMR"
+        tramo = cf.tramo(v["vistas"])
+        archivo = f"{_nombre_legible(v['titulo'])}__{v['id']}.mp4"
+        final = carpeta_de(nicho) / clase / tramo / archivo
+        final.parent.mkdir(parents=True, exist_ok=True)
+        crudo.replace(final)
+        nota = (f"clasificado : {clase}  [revisado2: voz={'si' if r['voz'] else 'no'}, "
+                f"idioma={r['idioma']} — {r['que']}]")
+        txt = re.sub(r"clasificado :.*", nota, cf.ficha(v, clase, med, final), count=1)
+        final.with_suffix(".txt").write_text(txt, encoding="utf-8")
+        huellas.add(h)
+        listas += 1
+        log.info("+ a demanda %s %s %s %s", nicho, clase, tramo, archivo[:50])
+        # A R2 para no rebajarla mañana. Si el manifiesto no se pudo leer NO se escribe
+        # (pisaría el catálogo entero); la fuente igual queda lista para hoy.
+        key = f"fuentes_src/{nicho}/{clase}/{tramo}/{archivo}"
+        if man_ok and r2io.put_file(final, key, "video/mp4"):
+            man.append({"nicho": nicho, "clase": clase, "carpeta": tramo, "archivo": archivo,
+                        "tid": v["id"], "txt": txt, "md5": h, "key": key})
+    if listas and man_ok and not r2io.put_json(MANIFIESTO, man):
+        log.warning("No pude guardar el manifiesto: las fuentes de hoy sirven igual.")
+    log.info("%s: %d fuentes nuevas listas a demanda.", nicho, listas)
+    return listas
 
 
 class CuotaAgotada(Exception):
@@ -740,6 +868,8 @@ def sintetizar_voz(guion: str, clave: str, niche, solo_charon: bool = False,
     # niches/<nicho>.yaml como `voz_edge`. No gasta créditos de ElevenLabs.
     edge = voz_edge_de(niche)
     if edge:
+        # Sin respaldo a ElevenLabs a propósito: gastaría créditos y le cambiaría la voz al
+        # nicho. Si Microsoft falla, ese reel da error y se reintenta otro día.
         v, align = voz_edge(guion, edge, voces / f"voz_{clave}.mp3", _velocidad(niche))
         return v, align, f"Microsoft/{edge}"
     v = align = None
@@ -995,6 +1125,10 @@ def _producir(nicho: str, cuantos: int = 3, clase: str = "AUTO") -> tuple[list, 
     # se perdía ese día: hidroponía quedó con la mitad de stock que bonsái por eso.
     pedidos = cuantos
     cuantos = cuantos + RESERVAS
+    try:
+        fuentes_a_demanda(nicho, cuantos)
+    except Exception as e:  # noqa: BLE001 — buscar fuentes nuevas no puede voltear la tanda
+        log.warning("Fuentes a demanda de %s falló: %s", nicho, str(e)[:120])
     # AUTO (20/10/2026, decisión de Tomix): primero los MUDOS (ASMR), con guion inventado
     # por Gemini con la fórmula ganadora. Solo si no quedan mudos se completa con
     # hablados (doblaje).

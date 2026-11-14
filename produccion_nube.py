@@ -12,6 +12,8 @@ falta para tener OBJETIVO reels de ese nicho esperando en el stock.
 Uso (lo corre .github/workflows/producir.yml):
     python produccion_nube.py
     python produccion_nube.py --nicho bonsai --cantidad 1     # prueba de uno
+
+Los nichos: los que pasan config.nicho_produce (ver LISTOS abajo).
 """
 from __future__ import annotations
 
@@ -27,12 +29,22 @@ print(f"credenciales de la bóveda: {r2io.cargar_credenciales()}")   # antes que
 print(f"ajustes de nicho del panel: {r2io.bajar_nichos(ROOT / 'niches') or 'ninguno (uso la copia)'}")
 
 import armar_stock  # noqa: E402
+import config  # noqa: E402
 import producir_stock  # noqa: E402
+from src import toggles  # noqa: E402
 from src.logging_setup import get_logger  # noqa: E402
 
 log = get_logger()
 
-NICHOS = ("hidroponia", "bonsai")
+# Los nichos salen de config (14/11/2026): los que están listos para producir
+# (config.nicho_produce: fuente, link de venta y nombre de producto cargados), leídos
+# DESPUÉS de bajar los ajustes del panel. Antes era ("hidroponia", "bonsai") fijo y un
+# nicho nuevo (terrarios, herbología) quedaba afuera aunque estuviera configurado.
+# Numerología no entra: su producto sigue en PENDIENTE y ni siquiera se exporta.
+LISTOS = tuple(config.nichos_produccion())
+# Del reparto automático quedan afuera los que tienen la producción apagada en el panel
+# (state/toggles.json; sin entrada = prendido). Así su parte del día va a los demás.
+NICHOS = tuple(n for n in LISTOS if toggles.activo(n, "produccion"))
 # Se publican 2 por día de cada nicho (6:00 y 18:00 ART). Se producen MÁS (pedido de
 # Tomix, 28/10/2026: "siempre más encolados de los que se pueden subir"): la cola crece
 # 1 por día y nicho hasta OBJETIVO, y ahí frena sola (también cuida los minutos de GitHub).
@@ -60,10 +72,13 @@ def repartir(stock: dict[str, int]) -> dict[str, int]:
 
 def main() -> int:
     ap = argparse.ArgumentParser()
-    ap.add_argument("--nicho", choices=NICHOS)
+    # A mano se acepta cualquier nicho listo; si tiene la producción apagada,
+    # producir_stock.producir lo dice y no hace nada.
+    ap.add_argument("--nicho", choices=LISTOS)
     ap.add_argument("--cantidad", type=int)
     a = ap.parse_args()
 
+    log.info("Nichos listos: %s | en el reparto: %s", list(LISTOS), list(NICHOS))
     idx = armar_stock.leer_index()
     stock = {n: sum(1 for x in idx if x.get("nicho") == n) for n in NICHOS}
     plan = repartir(stock)

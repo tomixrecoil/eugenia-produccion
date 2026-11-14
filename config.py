@@ -479,7 +479,8 @@ def checkout(niche_name: str | None = None, origen: str | None = None) -> str:
     —la pestaña Nicho— y no hay que tocar código.
 
     `origen` es el código de `sck()`. Si se pasa, el link sale etiquetado y Hotmart
-    devuelve ese código en la venta. Sin `origen` el link sale como siempre, así que
+    devuelve ese código en la venta (también en las páginas conocimientosdigital.pages.dev,
+    que pasan el `sck` a su checkout). Sin `origen` el link sale como siempre, así que
     ningún llamador viejo se rompe.
     """
     try:
@@ -488,11 +489,13 @@ def checkout(niche_name: str | None = None, origen: str | None = None) -> str:
         return ""
     if not base or not origen:
         return base
-    # El `sck` es un parámetro de HOTMART. Pegado a una landing propia no etiqueta nada:
-    # ensucia la URL a la vista del cliente y la venta sigue sin poder atribuirse. Desde
-    # que el nicho puede apuntar a una landing (switch landing/checkout), etiquetar a
-    # ciegas dejaba enlaces como "conocimientosdigital.com/bonsai/?sck=ig-r".
-    if "hotmart.com" not in base.lower():
+    # El `sck` es un parámetro de HOTMART. Pegado a una landing cualquiera no etiqueta nada:
+    # ensucia la URL a la vista del cliente y la venta sigue sin poder atribuirse (antes
+    # salían enlaces como "conocimientosdigital.com/bonsai/?sck=ig-r").
+    # EXCEPCIÓN (14/11): las páginas de conocimientosdigital.pages.dev leen `?sck=` de la
+    # dirección y se lo pasan a los botones del checkout, así que ahí SÍ se etiqueta.
+    _b = base.lower()
+    if "hotmart.com" not in _b and "conocimientosdigital.pages.dev" not in _b:
         return base
     codigo = sck(origen)
     if not codigo:

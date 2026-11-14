@@ -8,7 +8,7 @@ on:
   workflow_dispatch:
     inputs:
       nicho:
-        description: "Solo este nicho (vacío = los dos)"
+        description: "Solo este nicho: bonsai, hidroponia, terrarios o herbologia (vacío = todos los listos)"
         required: false
         default: ""
       cantidad:
@@ -29,8 +29,11 @@ concurrency:
 jobs:
   producir:
     runs-on: ubuntu-24.04
-    # Freno de los 2.000 minutos por mes: ninguna corrida pasa de 75.
-    timeout-minutes: 75
+    # Repo público = sin tope de minutos (04/11). Con 4 nichos el reparto hace hasta
+    # 3 x 4 = 12 reels por día (máx. 5 por nicho) a ~8 min cada uno = ~96 min, más
+    # instalar (~5), buscar fuentes a demanda de terrarios/herbología (~10) y YouTube.
+    # 75 cortaba la corrida a la mitad.
+    timeout-minutes: 150
     steps:
       - uses: actions/checkout@v4
 

@@ -461,7 +461,8 @@ def _guardar(niche_name: str, video_id: str, rec: dict) -> None:
 # La función
 # ==============================================================================
 
-def con_origen(texto: str, plataforma: str, video_id: str) -> str:
+def con_origen(texto: str, plataforma: str, video_id: str,
+               nicho: str | None = None) -> str:
     """Le cuelga el origen (`sck` de Hotmart) a los links de compra que haya en el copy.
 
     POR QUÉ ACÁ Y NO AL GENERAR EL COPY
@@ -480,12 +481,16 @@ def con_origen(texto: str, plataforma: str, video_id: str) -> str:
         return texto
     try:
         origen = config.sck(plataforma, "r", str(video_id))
-        etiquetado = config.checkout(None, origen)
-        base = config.checkout()
+        # El nicho REAL del reel (antes iba None y caía en NICHE/hidroponía: el copy de
+        # otro nicho no encontraba su link y salía sin etiqueta). Sin nicho, como siempre.
+        etiquetado = config.checkout(nicho, origen)
+        base = config.checkout(nicho)
         if not base or not etiquetado or base == etiquetado:
             return texto
-        # Solo se toca el link que YA está en el texto: no se agrega ninguno.
-        return texto.replace(base, etiquetado)
+        # Solo se toca el link que YA está en el texto: no se agrega ninguno. Y solo si
+        # termina ahí: un link que ya trae "?sck=..." (o "/algo") no se vuelve a etiquetar.
+        import re as _re
+        return _re.sub(_re.escape(base) + r"(?![\w?&=/%-]|\.\w)", lambda _m: etiquetado, texto)
     except Exception:  # noqa: BLE001
         log.warning("No pude etiquetar el origen del copy (%s/%s); va sin etiqueta.",
                     plataforma, video_id)
@@ -694,7 +699,7 @@ def publicar_reel(video_id: str, niche, secrets: Secrets | None = None,
     elif _arrancar("facebook"):
         try:
             fb_id = publish.publish_reel(
-                video_path=mp4, description=con_origen(copy, "fb", video_id),
+                video_path=mp4, description=con_origen(copy, "fb", video_id, niche.name),
                 page_id=niche.meta_page_id,
                 page_token=config.token_de_pagina(niche.meta_page_id, secrets),
                 graph_version=secrets.meta_graph_version,
@@ -730,7 +735,7 @@ def publicar_reel(video_id: str, niche, secrets: Secrets | None = None,
                 if not ig_user:
                     raise RuntimeError("La página no tiene Instagram vinculado.")
                 ig_id = publish_ig.publish_reel_ig(
-                    mp4, con_origen(copy, "ig", video_id), ig_user, ptok,
+                    mp4, con_origen(copy, "ig", video_id, niche.name), ig_user, ptok,
                     secrets.r2_bucket, secrets.r2_public_base, secrets.meta_graph_version)
                 _ok("instagram", "instagram_id", ig_id)
                 log.info("Instagram OK -> %s", ig_id)
@@ -761,7 +766,7 @@ def publicar_reel(video_id: str, niche, secrets: Secrets | None = None,
             ig_url = f"{secrets.r2_public_base.rstrip('/')}/{video_key}"
             # publish_at: sin esto el Worker publicaba por FECHA nomás y el reel salía a
             # la hora del cron, no a la hora elegida.
-            job = {"r2_url": ig_url, "caption": con_origen(copy, "ig", video_id),
+            job = {"r2_url": ig_url, "caption": con_origen(copy, "ig", video_id, niche.name),
                    "video_key": video_key,
                    "date": datestr, "tiktok_id": video_id, "publish_at": publish_at_utc,
                    # A qué cuenta va y de qué nicho es. Sin esto todos los reels de todos
