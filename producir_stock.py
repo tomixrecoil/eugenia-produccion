@@ -475,7 +475,19 @@ def fuentes_a_demanda(nicho: str, cuantos: int) -> int:
     from src import audio_voz, download
     conocidos = {e.get("tid") for e in man} | usados
     conocidos |= set(r2io.get_json(DESCARTADOS) or [])
-    vids = [v for v in cf.listar(perfiles) if v["id"] not in conocidos]
+    listados = cf.listar(perfiles)
+    if not listados:
+        # TikTok no deja listar perfiles desde yt-dlp (14/11: "Failed to parse JSON" en
+        # todos). Respaldo: la lista de candidatos leída del perfil en el navegador (solo
+        # id y vistas, sin bajar videos) en R2 fuentes_src/candidatos/<nicho>.json. Bajar
+        # un video suelto sí funciona. Solo de los perfiles que siguen prendidos.
+        prendidos = {u.rstrip("/").split("@")[-1] for u in perfiles}
+        cand = (r2io.get_json(f"fuentes_src/candidatos/{nicho}.json") or {}).get("videos") or []
+        listados = [{"id": c["id"], "vistas": int(c.get("vistas") or 0),
+                     "perfil": f"https://www.tiktok.com/@{c['perfil']}"}
+                    for c in cand if c.get("perfil") in prendidos]
+        log.info("%s: listado de TikTok vacío; uso %d candidatos de R2.", nicho, len(listados))
+    vids = [v for v in listados if v["id"] not in conocidos]
     vids.sort(key=lambda v: -v["vistas"])
     log.info("%s: faltan %d fuentes; %d videos sin usar en sus perfiles (bajo solo %d).",
              nicho, falta, len(vids), falta)
