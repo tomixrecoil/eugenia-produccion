@@ -33,7 +33,7 @@ jobs:
     # 3 x 4 = 12 reels por día (máx. 5 por nicho) a ~8 min cada uno = ~96 min, más
     # instalar (~5), buscar fuentes a demanda de terrarios/herbología (~10) y YouTube.
     # 75 cortaba la corrida a la mitad.
-    timeout-minutes: 150
+    timeout-minutes: 330
     steps:
       - uses: actions/checkout@v4
 

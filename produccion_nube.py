@@ -6,8 +6,9 @@ Una sola pasada, sin dormir: GitHub cobra cada minuto que la máquina está pren
 plan gratis trae 2.000 por mes), así que esperar a que Gemini recargue cuota es tirar
 minutos. Si hay límite, se corta y mañana sigue.
 
-Cuántos hace: los que se publican por día (POR_DIA por nicho), pero nunca más de lo que
-falta para tener OBJETIVO reels de ese nicho esperando en el stock.
+Cuántos hace: POR_DIA por nicho (uno más de los 2 que se publican), MAX_POR_NICHO si el
+nicho tiene poco stock, y lo que un nicho no pudo hacer pasa al siguiente. Nunca más de
+lo que falta para tener OBJETIVO reels de ese nicho esperando en el stock.
 
 Uso (lo corre .github/workflows/producir.yml):
     python produccion_nube.py
@@ -54,20 +55,21 @@ OBJETIVO = 20
 # MENOS stock, hasta MAX_POR_NICHO cada uno. Antes era 3 fijos por nicho y, como
 # hidroponía falla más, quedó con 9 contra 19 de bonsái. El total por día no cambia.
 MAX_POR_NICHO = 5
+BAJO = 6          # con menos de esto en stock (3 días) produce MAX_POR_NICHO
 
 
 def repartir(stock: dict[str, int]) -> dict[str, int]:
-    """{nicho: cuántos producir hoy}. De a uno, siempre al que menos tiene (contando lo
-    ya asignado), sin pasar de OBJETIVO ni de MAX_POR_NICHO."""
-    asignado = {n: 0 for n in stock}
-    for _ in range(POR_DIA * len(stock)):
-        libres = [n for n in stock
-                  if asignado[n] < MAX_POR_NICHO and stock[n] + asignado[n] < OBJETIVO]
-        if not libres:
-            break
-        n = min(libres, key=lambda x: (stock[x] + asignado[x], x))
-        asignado[n] += 1
-    return asignado
+    """{nicho: cuántos producir hoy}. Cada nicho, POR_DIA (uno más de los 2 que se publican,
+    pedido de Tomix 18/11: "tenemos que estar produciendo de más"); el que tiene poco
+    stock (menos de BAJO), hasta MAX_POR_NICHO. Nunca más de lo que falta para OBJETIVO.
+    Antes se repartían 12 en total al que menos tenía: terrarios y plantas (sin fuentes)
+    se llevaban 5 cada uno, hacían 0, y hidroponía y bonsái quedaban con 1 por día
+    mientras publicaban 2 (el stock bajaba solo)."""
+    plan = {}
+    for n, s_ in stock.items():
+        quiere = MAX_POR_NICHO if s_ < BAJO else POR_DIA
+        plan[n] = max(0, min(quiere, OBJETIVO - s_))
+    return plan
 
 
 def main() -> int:
@@ -83,15 +85,23 @@ def main() -> int:
     stock = {n: sum(1 for x in idx if x.get("nicho") == n) for n in NICHOS}
     plan = repartir(stock)
     hechos_total, errores_total = [], []
+    sobrante = 0
     # El que menos tiene va primero: si se acaba la cuota, que le falte al otro.
     orden = [a.nicho] if a.nicho else sorted(NICHOS, key=lambda n: stock[n])
     for nicho in orden:
         en_stock = stock.get(nicho, 0)
         falta = a.cantidad if a.cantidad else plan.get(nicho, 0)
+        # Lo que un nicho anterior no pudo hacer (sin fuentes, Gemini caído) pasa a este,
+        # sin pasar de OBJETIVO: el total del día no se pierde.
+        if not a.cantidad and sobrante:
+            extra = max(0, min(sobrante, OBJETIVO - en_stock - falta))
+            falta += extra
+            sobrante -= extra
         log.info("%s: %d en stock, produzco %d.", nicho, en_stock, falta)
         if not falta:
             continue
         hechos, errores = producir_stock.producir(nicho, falta)
+        sobrante += max(0, falta - len(hechos))
         hechos_total += hechos
         errores_total += errores
         if any(e.endswith("CUOTA") for e in errores):

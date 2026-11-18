@@ -279,6 +279,7 @@ def elegir_fuentes(nicho: str, cuantos: int, clase: str = "ASMR") -> list[Path]:
     base = carpeta_de(nicho) / clase
     usados, huellas = _usados()
     out = []
+    por_creador: dict[str, int] = {}
     for d in _buckets(base):
         for mp4 in sorted(d.glob("*.mp4")):
             if _no_usar(mp4):
@@ -304,9 +305,40 @@ def elegir_fuentes(nicho: str, cuantos: int, clase: str = "ASMR") -> list[Path]:
                 log.info("Salteo %s: mismo contenido que una fuente ya usada.", mp4.name[:44])
                 continue
             huellas.add(h)          # también evita repetir dentro de esta misma tanda
+            if nicho in VARIAR_CREADORES:
+                c = creador_de(cuerpo)
+                if por_creador.get(c, 0) >= MAX_POR_CREADOR:
+                    continue        # le toca a otro creador (no se marca como usado)
+                por_creador[c] = por_creador.get(c, 0) + 1
             out.append(mp4)
             if len(out) >= cuantos:
                 return out
+    return out
+
+
+# Plantas medicinales salió 8 de 8 del mismo TikToker (miremedionatural10) y cada video dos
+# veces (traducido + muteado). Tomix, 18/11: "no puede ser una sola cuenta de TikTok".
+# En estos nichos: como mucho MAX_POR_CREADOR por tanda, los candidatos se bajan
+# alternando perfiles, y no hay segunda versión muteada/repetida del mismo video.
+VARIAR_CREADORES = ("terrarios", "herbologia")
+MAX_POR_CREADOR = 1
+
+
+def creador_de(ficha_txt: str) -> str:
+    m = re.search(r"tiktok\.com/@([\w.\-]+)", ficha_txt or "")
+    return m.group(1).lower() if m else "?"
+
+
+def _alternar_perfiles(vids: list[dict]) -> list[dict]:
+    """Ordena por vistas DENTRO de cada perfil y después intercala: el mejor de cada uno,
+    el segundo de cada uno... Así no se bajan 7 seguidos del perfil con más vistas."""
+    grupos: dict[str, list[dict]] = {}
+    for v in sorted(vids, key=lambda v: -v["vistas"]):
+        grupos.setdefault((v.get("perfil") or "").rstrip("/").lower(), []).append(v)
+    out, i = [], 0
+    while any(i < len(g) for g in grupos.values()):
+        out += [g[i] for g in grupos.values() if i < len(g)]
+        i += 1
     return out
 
 
@@ -485,10 +517,11 @@ def fuentes_a_demanda(nicho: str, cuantos: int) -> int:
         cand = (r2io.get_json(f"fuentes_src/candidatos/{nicho}.json") or {}).get("videos") or []
         listados = [{"id": c["id"], "vistas": int(c.get("vistas") or 0), "titulo": c.get("titulo") or c["perfil"],
                      "perfil": f"https://www.tiktok.com/@{c['perfil']}"}
-                    for c in cand if c.get("perfil") in prendidos]
+                    # busqueda=true: sacados de la búsqueda de TikTok (18/11), de muchos
+                    # creadores distintos; no dependen de los 4 perfiles del panel.
+                    for c in cand if c.get("perfil") in prendidos or c.get("busqueda")]
         log.info("%s: listado de TikTok vacío; uso %d candidatos de R2.", nicho, len(listados))
-    vids = [v for v in listados if v["id"] not in conocidos]
-    vids.sort(key=lambda v: -v["vistas"])
+    vids = _alternar_perfiles([v for v in listados if v["id"] not in conocidos])
     log.info("%s: faltan %d fuentes; %d videos sin usar en sus perfiles (bajo solo %d).",
              nicho, falta, len(vids), falta)
     rd.TEMA = tema_de(nicho)
@@ -1148,7 +1181,7 @@ def _producir(nicho: str, cuantos: int = 3, clase: str = "AUTO") -> tuple[list, 
         fuentes = [(p, "ASMR") for p in elegir_fuentes(nicho, cuantos, clase="ASMR")]
         if len(fuentes) < cuantos:
             fuentes += [(p, "TRADUCIR") for p in elegir_fuentes(nicho, cuantos - len(fuentes), clase="TRADUCIR")]
-        for modo in ("MUTEADO", "REPETIR"):
+        for modo in (() if nicho in VARIAR_CREADORES else ("MUTEADO", "REPETIR")):
             if len(fuentes) < cuantos:
                 ya = {f for f, _ in fuentes}      # el mismo archivo no sale dos veces por tanda
                 fuentes += [(p, modo) for p in elegir_reuso(nicho, cuantos - len(fuentes), modo)

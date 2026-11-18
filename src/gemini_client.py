@@ -139,6 +139,22 @@ def run(call, key_list: list[str] | None = None):
     raise last
 
 
+# Modelos de repuesto cuando el pedido está SATURADO (503 "high demand", 500, conexión
+# cortada). El 17 y 18/11 GitHub hizo 0 reels: 14 intentos murieron porque el modelo
+# principal estaba saturado y solo se reintentaba con el mismo. La saturación es POR
+# MODELO: otro casi siempre contesta. Se usan en orden, salteando el que ya falló.
+MODELOS_REPUESTO = ["gemini-flash-latest", "gemini-2.5-flash", "gemini-flash-lite-latest"]
+
+
+def _transitorio(e: Exception) -> bool:
+    """5xx de Gemini o conexión cortada a mitad de respuesta."""
+    if isinstance(e, genai_errors.ServerError):
+        return True
+    n = type(e).__name__
+    return n in ("RemoteProtocolError", "ReadTimeout", "ConnectError", "ReadError") or \
+        "Server disconnected" in str(e)
+
+
 def generate(client: genai.Client, model: str, contents, retries: int = 5,
              system: str | None = None):
     """generate_content con reintentos ante errores transitorios (503/UNAVAILABLE, 429).
@@ -156,7 +172,15 @@ def generate(client: genai.Client, model: str, contents, retries: int = 5,
     if system:
         cfg["system_instruction"] = system
     gen_config = genai_types.GenerateContentConfig(**cfg) if cfg else None
+    repuestos = [m for m in MODELOS_REPUESTO if m != model]
+    retries = max(retries, 2 + len(repuestos))   # que alcance a probar todos los repuestos
     for attempt in range(retries):
+        # Dos intentos con el modelo pedido; si sigue saturado, uno con cada repuesto.
+        if attempt >= 2 and repuestos:
+            nuevo = repuestos[min(attempt - 2, len(repuestos) - 1)]
+            if nuevo != model:
+                log.warning("Gemini %s saturado: pruebo con %s.", model, nuevo)
+                model = nuevo
         entrada = {"ts": datetime.now(timezone.utc).isoformat(timespec="seconds") + "Z",
                    "modelo": model, "intento": attempt + 1, "prompt": prompt_txt}
         try:
@@ -166,30 +190,32 @@ def generate(client: genai.Client, model: str, contents, retries: int = 5,
             entrada["respuesta"] = _preview(getattr(r, "text", "") or "")
             _ACTIVIDAD.append(entrada)
             return r
-        except genai_errors.ServerError as e:  # 5xx (503 high demand, etc.)
+        except Exception as e:  # noqa: BLE001
+            if not _transitorio(e):
+                if isinstance(e, genai_errors.ClientError):
+                    entrada["ms"] = int((time.monotonic() - t0) * 1000)
+                    entrada["ok"] = False
+                    entrada["error"] = str(e)[:200]
+                    _ACTIVIDAD.append(entrada)
+                    if getattr(e, "code", None) == 429:
+                        msg = str(e)
+                        # Cuota DIARIA agotada -> reintentar no sirve (no se libera por horas).
+                        if "PerDay" in msg or "per day" in msg.lower():
+                            raise
+                        if attempt < retries - 1:
+                            wait = 15 * (attempt + 1)
+                            log.warning("Gemini rate limit por minuto (429). Reintento en %ds…", wait)
+                            time.sleep(wait)
+                            continue
+                raise
+            # 5xx (503 high demand, 500) o conexión cortada
             entrada["ms"] = int((time.monotonic() - t0) * 1000)
             entrada["ok"] = False
             entrada["error"] = str(e)[:200]
             _ACTIVIDAD.append(entrada)
             if attempt == retries - 1:
                 raise
-            wait = 8 * (attempt + 1)
+            wait = 8 if attempt < 2 else 4
             log.warning("Gemini no disponible (%s). Reintento en %ds (%d/%d)…",
                         getattr(e, "code", "5xx"), wait, attempt + 1, retries)
             time.sleep(wait)
-        except genai_errors.ClientError as e:
-            entrada["ms"] = int((time.monotonic() - t0) * 1000)
-            entrada["ok"] = False
-            entrada["error"] = str(e)[:200]
-            _ACTIVIDAD.append(entrada)
-            if getattr(e, "code", None) == 429:
-                msg = str(e)
-                # Cuota DIARIA agotada -> reintentar no sirve (no se libera por horas).
-                if "PerDay" in msg or "per day" in msg.lower():
-                    raise
-                if attempt < retries - 1:
-                    wait = 15 * (attempt + 1)
-                    log.warning("Gemini rate limit por minuto (429). Reintento en %ds…", wait)
-                    time.sleep(wait)
-                    continue
-            raise
