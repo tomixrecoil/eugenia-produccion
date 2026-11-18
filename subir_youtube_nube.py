@@ -11,9 +11,10 @@ interruptor de YouTube era decoración (Tomix, 02/11/2026; analisis/AJUSTES_DECO
 Cómo decide
 -----------
 - Lo publicado sale de `stock/publicados.json` (lo anota el Worker al publicar).
-- Solo nichos con el interruptor ▶️ YouTube prendido (`state/toggles.json` → yt) y con
-  canal conectado (`YT_REFRESH_<NICHO>` en la bóveda; la app de Google es
-  `YT_CLIENT_ID` / `YT_CLIENT_SECRET`). Bonsái no tiene canal todavía.
+- Solo nichos con el interruptor ▶️ YouTube prendido (`state/toggles.json` → yt). El canal
+  es el del nicho (`YT_REFRESH_<NICHO>` en la bóveda) o, si está vacío, el primero conectado
+  de ORDEN_CANAL: desde el 18/11 todo va a UN canal (pedido de Tomix). La app de Google es
+  `YT_CLIENT_ID` / `YT_CLIENT_SECRET`.
 - Lo ya subido queda en `stock/youtube.json` ({"desde", "subidos": {id: video_id}}). La
   primera vez se anota "desde = ahora": no se suben los cientos de reels viejos.
 - Máximo MAX_POR_CORRIDA por vez: YouTube da cupo para ~6 subidas por día.
@@ -41,17 +42,31 @@ print(f"ajustes de nicho del panel: {r2io.bajar_nichos(ROOT / 'niches') or 'ning
 import os  # noqa: E402
 
 REGISTRO = "stock/youtube.json"
-MAX_POR_CORRIDA = 4
+# YouTube da 10.000 unidades por día y cada subida gasta 1.600: entran 6 por día.
+MAX_POR_CORRIDA = 6
+# Un solo canal para todo (Tomix, 18/11): cada nicho usa SU permiso si está cargado en
+# Credenciales (YT_REFRESH_<NICHO>); si está vacío, el primero conectado de esta lista.
+# Para mandar todo a un canal, alcanza con conectar ese canal en uno solo de los campos.
+ORDEN_CANAL = ("hidroponia", "bonsai", "terrarios", "herbologia")
 
 
 def _clave(nicho: str) -> str:
     return "YT_REFRESH_" + re.sub(r"[^A-Z0-9]", "_", nicho.upper())
 
 
+def _clave_canal(nicho: str) -> str:
+    """La clave del permiso que usa este nicho: la suya o, si está vacía, la primera
+    conectada de ORDEN_CANAL. "" si no hay ningún canal conectado."""
+    for n in (nicho, *ORDEN_CANAL):
+        if os.getenv(_clave(n)):
+            return _clave(n)
+    return ""
+
+
 def _servicio(nicho: str):
     from google.oauth2.credentials import Credentials
     from googleapiclient.discovery import build
-    creds = Credentials(None, refresh_token=os.environ[_clave(nicho)],
+    creds = Credentials(None, refresh_token=os.environ[_clave_canal(nicho)],
                         token_uri="https://oauth2.googleapis.com/token",
                         client_id=os.environ["YT_CLIENT_ID"],
                         client_secret=os.environ["YT_CLIENT_SECRET"],
@@ -94,10 +109,13 @@ def main() -> int:
             continue
         if not (toggles.get(n) or {}).get("yt", True):
             continue
-        if not os.getenv(_clave(n)):
-            print(f"  {rid}: {n} no tiene canal conectado ({_clave(n)}), lo salteo.")
+        if not _clave_canal(n):
+            print(f"  {rid}: no hay ningún canal de YouTube conectado, lo salteo.")
             continue
         pendientes.append(p)
+    # Los más nuevos primero: con 6 por día de cupo y 8 publicados, que no se atasque
+    # en los viejos (cuyo video ya se había borrado: ver el Worker, 18/11).
+    pendientes.sort(key=lambda p: str(p.get("ts", "")), reverse=True)
     print(f"Para subir: {len(pendientes)} (subo hasta {MAX_POR_CORRIDA}).")
     if a.probar or not pendientes:
         for p in pendientes:
@@ -108,13 +126,19 @@ def main() -> int:
     import subir_youtube
     servicios: dict = {}
     hechos = 0
-    for p in pendientes[:MAX_POR_CORRIDA]:
+    for p in pendientes:
+        if hechos >= MAX_POR_CORRIDA:
+            break
         n, rid = p["nicho"], p["id"]
         carpeta = Path(tempfile.mkdtemp()) / rid      # el id de la carpeta va al sck del link
         carpeta.mkdir(parents=True)
         video = carpeta / "publicar.mp4"
         if not r2io.bajar(p.get("video_key") or f"reels/{rid}.mp4", video):
-            print(f"  {rid}: no pude bajar el video, sigo con el próximo.")
+            # Ya no existe (el Worker borraba el video al publicar, hasta el 18/11): se
+            # anota para no reintentarlo todos los días y trabar a los nuevos.
+            print(f"  {rid}: el video ya no está en R2, lo marco y sigo.")
+            subidos[rid] = {"yt": None, "sin_video": True, "nicho": n}
+            r2io.put_json(REGISTRO, reg)
             continue
         titulo, gancho = _titulo_y_gancho(p.get("copy", ""))
         try:
@@ -122,7 +146,8 @@ def main() -> int:
         except Exception:  # noqa: BLE001
             tags = [n, "Shorts"]
         try:
-            yt = servicios.get(n) or servicios.setdefault(n, _servicio(n))
+            canal = _clave_canal(n)
+            yt = servicios.get(canal) or servicios.setdefault(canal, _servicio(n))
             vid = subir_youtube.publish_short(video, titulo, gancho, tags, yt=yt, nicho=n)
         except Exception as e:  # noqa: BLE001
             msg = str(e)
