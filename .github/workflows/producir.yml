@@ -3,8 +3,8 @@
 name: Producir reels
 
 on:
-  schedule:
-    - cron: "0 5 * * *"        # 05:00 UTC = 02:00 ART, antes de la publicación de las 6
+  # Sin horario propio (19/11): GitHub lo atrasaba hasta 8 h. Lo arranca a tiempo el
+  # reloj del Worker eugenia-puerta-r2 (05:00 UTC = 02:00 ART, antes de la publicación de las 6).
   workflow_dispatch:
     inputs:
       nicho:
@@ -44,8 +44,9 @@ jobs:
 
       - name: ffmpeg
         run: |
-          sudo apt-get update -qq
-          sudo apt-get install -y -qq --no-install-recommends ffmpeg fonts-noto-color-emoji
+          # 3 intentos (19/11: el espejo de Ubuntu dio 503 y se cayó la corrida)
+          for i in 1 2 3; do sudo apt-get update -qq && sudo apt-get install -y -qq --no-install-recommends --fix-missing ffmpeg fonts-noto-color-emoji && break; sleep 60; done
+          ffmpeg -version | head -1
 
       # Arial Black es la letra de los subtítulos. Si la descarga falla se sigue: mejor
       # un reel con otra letra que ningún reel.

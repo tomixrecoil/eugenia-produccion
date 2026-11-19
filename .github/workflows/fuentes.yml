@@ -3,8 +3,8 @@
 name: Catalogar fuentes
 
 on:
-  schedule:
-    - cron: "0 4 * * *"        # 04:00 UTC = 01:00 ART
+  # Sin horario propio (19/11): GitHub lo atrasaba hasta 8 h. Lo arranca a tiempo el
+  # reloj del Worker eugenia-puerta-r2 (04:00 UTC = 01:00 ART).
   workflow_dispatch:
     inputs:
       limite_nuevos:
@@ -33,8 +33,9 @@ jobs:
           cache: pip
       - name: ffmpeg
         run: |
-          sudo apt-get update -qq
-          sudo apt-get install -y -qq --no-install-recommends ffmpeg
+          # 3 intentos (19/11: el espejo de Ubuntu dio 503 y se cayó la corrida)
+          for i in 1 2 3; do sudo apt-get update -qq && sudo apt-get install -y -qq --no-install-recommends --fix-missing ffmpeg && break; sleep 60; done
+          ffmpeg -version | head -1
       - run: pip install -r requirements.txt
       - name: Catalogar y revisar
         env:
