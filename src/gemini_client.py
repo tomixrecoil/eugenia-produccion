@@ -143,12 +143,16 @@ def run(call, key_list: list[str] | None = None):
 # cortada). El 17 y 18/11 GitHub hizo 0 reels: 14 intentos murieron porque el modelo
 # principal estaba saturado y solo se reintentaba con el mismo. La saturación es POR
 # MODELO: otro casi siempre contesta. Se usan en orden, salteando el que ya falló.
-MODELOS_REPUESTO = ["gemini-flash-latest", "gemini-2.5-flash", "gemini-flash-lite-latest"]
+# gemini-2.5-flash lo retiró Google (404 "no longer available", 18/11): fuera.
+MODELOS_REPUESTO = ["gemini-flash-latest", "gemini-flash-lite-latest"]
 
 
 def _transitorio(e: Exception) -> bool:
     """5xx de Gemini o conexión cortada a mitad de respuesta."""
     if isinstance(e, genai_errors.ServerError):
+        return True
+    # Un modelo retirado (404 NOT_FOUND) tampoco se reintenta igual: se pasa al repuesto.
+    if getattr(e, "code", None) == 404 and "model" in str(e).lower():
         return True
     n = type(e).__name__
     return n in ("RemoteProtocolError", "ReadTimeout", "ConnectError", "ReadError") or \

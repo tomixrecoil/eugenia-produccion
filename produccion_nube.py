@@ -94,7 +94,9 @@ def main() -> int:
         # Lo que un nicho anterior no pudo hacer (sin fuentes, Gemini caído) pasa a este,
         # sin pasar de OBJETIVO: el total del día no se pierde.
         if not a.cantidad and sobrante:
-            extra = max(0, min(sobrante, OBJETIVO - en_stock - falta))
+            # Como mucho MAX_POR_NICHO de más: si no, el primero se come toda la cuota de
+            # Gemini (18/11: hidroponía hizo 11 intentos y bonsái se quedó sin nada).
+            extra = max(0, min(sobrante, MAX_POR_NICHO, OBJETIVO - en_stock - falta))
             falta += extra
             sobrante -= extra
         log.info("%s: %d en stock, produzco %d.", nicho, en_stock, falta)
