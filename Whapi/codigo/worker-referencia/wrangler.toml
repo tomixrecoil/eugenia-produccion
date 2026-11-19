@@ -1,0 +1,18 @@
+name = "eugenia-whatsapp"
+main = "src/index.js"
+compatibility_date = "2026-01-01"
+
+[[r2_buckets]]
+binding = "R2"
+bucket_name = "marketing-reels"
+
+[triggers]
+crons = ["*/10 * * * *"]
+
+[vars]
+GRAPH_VERSION = "v21.0"
+NICHO_DEFAULT = "hidroponia"
+
+# Secretos (NO van acá; se cargan con `npx wrangler secret put <NOMBRE>`):
+#   WHATSAPP_TOKEN, WHATSAPP_PHONE_ID, META_APP_SECRET, WA_VERIFY_TOKEN,
+#   GROQ_API_KEY, GROQ_API_KEY_2, GROQ_API_KEY_3, OWNER_NUMBERS
