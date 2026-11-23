@@ -174,7 +174,17 @@ def overlay_logo(video: Path, logo: Path, out: Path, scale: float = 0.35,
     return Path(out)
 
 
-def burn_subtitles(video: Path, ass_file: Path, out: Path) -> Path:
+def filtro_cinta(y: float, alto: float, fuerza: int = 22) -> str:
+    """Cinta borrosa a lo ancho del video (23/11, Tomix): tapa los subtítulos que el video
+    original trae quemados (en inglés), y los nuestros van encima. y/alto = fracciones del
+    alto del video (0..1). Devuelve un filtro de ffmpeg que deja el resultado en [cin]."""
+    return (f"[0:v]split[a][b];[b]crop=iw:trunc(ih*{alto}/2)*2:0:trunc(ih*{y}/2)*2,"
+            f"boxblur={fuerza}:3,eq=brightness=-0.06[bl];"
+            f"[a][bl]overlay=0:trunc(main_h*{y}/2)*2[cin]")
+
+
+def burn_subtitles(video: Path, ass_file: Path, out: Path,
+                   cinta: tuple[float, float] | None = None) -> Path:
     """Quema los subtítulos (.ass) EN el video. Tienen que ir quemados: Instagram,
     Facebook y TikTok no muestran archivos de subtítulos aparte.
     El filtro 'subtitles' de ffmpeg no traga rutas de Windows (C:\\...), así que se
@@ -196,9 +206,17 @@ def burn_subtitles(video: Path, ass_file: Path, out: Path) -> Path:
     if fuentes_dir.is_dir():
         rel = os.path.relpath(fuentes_dir, start=ass_file.parent).replace("\\", "/")
         fontsdir = f":fontsdir={rel}"
+    # cinta=(y, alto): primero la cinta borrosa sobre los subtítulos originales del video,
+    # después los nuestros encima. Sin cinta, el filtro de siempre.
+    if cinta:
+        filtro = ["-filter_complex",
+                  filtro_cinta(*cinta) + f";[cin]subtitles={ass_file.name}{fontsdir}[v]",
+                  "-map", "[v]", "-map", "0:a?"]
+    else:
+        filtro = ["-vf", f"subtitles={ass_file.name}{fontsdir}"]
     cmd = [
         "ffmpeg", "-y", "-i", str(Path(video).resolve()),
-        "-vf", f"subtitles={ass_file.name}{fontsdir}",
+        *filtro,
         "-c:v", "libx264", "-preset", "veryfast", "-crf", "20",
         "-c:a", "copy", str(Path(out).resolve()),
     ]

@@ -1109,7 +1109,15 @@ def renderizar_reel(nicho: str, clave: str, mp4: Path, guion: str, niche,
         palabras_por_grupo=niche.subtitle_palabras, color=niche.subtitle_color,
         minusculas=niche.subtitle_minusculas)
     if ass:
-        final = videoedit.burn_subtitles(final, ass, out / "con_subs.mp4")
+        # 23/11 (Tomix): si el original trae subtítulos quemados (p. ej. en inglés), una
+        # cinta borrosa los tapa y los nuestros van encima. Gemini mira el video fuente.
+        cinta = None
+        try:
+            from src import texto_quemado
+            cinta = texto_quemado.cinta_para(mp4, niche)
+        except Exception as e:  # noqa: BLE001
+            print(f"  cinta: no pude revisar el video ({str(e)[:100]}); sin cinta", flush=True)
+        final = videoedit.burn_subtitles(final, ass, out / "con_subs.mp4", cinta=cinta)
     mk = ROOT / niche.mockup_file
     lg = ROOT / niche.logo_file
     if niche.add_mockup and mk.exists():

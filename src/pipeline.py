@@ -203,7 +203,15 @@ def _process_media(video_path: Path, analysis_text: str, niche: Niche,
                         color=niche.subtitle_color,
                         minusculas=niche.subtitle_minusculas)
                     if ass:
-                        final = videoedit.burn_subtitles(final, ass, out_dir / "con_subs.mp4")
+                        # 23/11: cinta borrosa si el original trae subtítulos quemados.
+                        cinta = None
+                        try:
+                            from src import texto_quemado
+                            cinta = texto_quemado.cinta_para(video_path, niche, secrets.gemini_model)
+                        except Exception as e:  # noqa: BLE001
+                            log.warning("Cinta: no pude revisar el video (%s).", str(e)[:100])
+                        final = videoedit.burn_subtitles(final, ass, out_dir / "con_subs.mp4",
+                                                         cinta=cinta)
                         note += "+subs"
             else:
                 # REGLA DE ORO: sin voz en español NO se publica. Nunca sale inglés/crudo.
