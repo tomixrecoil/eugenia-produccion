@@ -11,8 +11,43 @@ from src.logging_setup import get_logger
 log = get_logger()
 
 
+def _tikwm(url: str, out_dir: Path) -> Path | None:
+    """TikTok vía tikwm.com (23/11/2026): TikTok bloquea a las IPs de GitHub y yt-dlp
+    falla con "Unexpected response from webpage request"; tikwm baja desde sus servidores.
+    `play` = mp4 sin marca de agua (h264; `hdplay` a veces es h265). None si no se pudo."""
+    import requests
+    try:
+        r = requests.get("https://www.tikwm.com/api/", params={"url": url}, timeout=30)
+        d = r.json().get("data") or {}
+        play = d.get("play")
+        if not play:
+            log.warning("tikwm no devolvió video para %s: %s", url, r.text[:120])
+            return None
+        if play.startswith("/"):
+            play = "https://www.tikwm.com" + play
+        path = out_dir / f"{d.get('id') or url.rstrip('/').split('/')[-1]}.mp4"
+        with requests.get(play, timeout=120, stream=True) as v:
+            v.raise_for_status()
+            with open(path, "wb") as f:
+                for chunk in v.iter_content(1 << 16):
+                    f.write(chunk)
+        if path.stat().st_size < 50_000:   # una página de error, no un video
+            path.unlink(missing_ok=True)
+            return None
+        log.info("Descargado (tikwm) -> %s (%.1f MB)", path.name, path.stat().st_size / 1e6)
+        return path
+    except Exception as e:  # noqa: BLE001
+        log.warning("tikwm falló para %s: %s", url, str(e)[:120])
+        return None
+
+
 def download_video(url: str, out_dir: Path, intentos: int = 4) -> Path:
     out_dir.mkdir(parents=True, exist_ok=True)
+    if "tiktok.com" in url:
+        # Primero tikwm: desde GitHub yt-dlp falla siempre y gasta 4 reintentos por video.
+        p = _tikwm(url, out_dir)
+        if p:
+            return p
     opts = {
         "quiet": True,
         "no_warnings": True,
