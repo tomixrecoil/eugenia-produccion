@@ -506,7 +506,9 @@ def fuentes_a_demanda(nicho: str, cuantos: int) -> int:
     import resolver_dudosos as rd
     from src import audio_voz, download
     conocidos = {e.get("tid") for e in man} | usados
-    conocidos |= set(r2io.get_json(DESCARTADOS) or [])
+    descartados = r2io.get_json(DESCARTADOS)
+    conocidos |= set(descartados or [])
+    nuevos_descartes: list[str] = []
     listados = cf.listar(perfiles)
     if not listados:
         # TikTok no deja listar perfiles desde yt-dlp (14/11: "Failed to parse JSON" en
@@ -526,9 +528,11 @@ def fuentes_a_demanda(nicho: str, cuantos: int) -> int:
              nicho, falta, len(vids), falta)
     rd.TEMA = tema_de(nicho)
     claves = rd._claves()
-    listas = bajados = 0
-    for v in vids[:falta * 3]:              # tope de intentos: una bajada puede fallar
-        if bajados >= falta:
+    listas = 0
+    # Tope de bajadas: muchas se descartan (texto quemado), así que se sigue hasta tener
+    # las que faltan. 23/11: con el tope en bajadas (no en listas) salía 0 todos los días.
+    for v in vids[:falta * 10]:
+        if listas >= falta:
             break
         destino_tmp = carpeta_de(nicho) / "_a_demanda"
         try:
@@ -536,18 +540,20 @@ def fuentes_a_demanda(nicho: str, cuantos: int) -> int:
         except Exception as e:  # noqa: BLE001
             log.warning("No pude bajar %s (%s).", v["id"], str(e)[:80])
             continue
-        bajados += 1
         if not _tiene_video(crudo):
             log.warning("%s bajó sin imagen: lo salteo.", v["id"])
+            nuevos_descartes.append(v["id"])
             crudo.unlink(missing_ok=True)
             continue
         if _texto_quemado(crudo):           # antes de gastar una escucha de Gemini
             log.info("%s tiene texto quemado: lo salteo.", v["id"])
+            nuevos_descartes.append(v["id"])
             crudo.unlink(missing_ok=True)
             continue
         h = registro_fuentes.huella(crudo)
         if h and h in huellas:
             log.info("%s: mismo contenido que una fuente ya usada.", v["id"])
+            nuevos_descartes.append(v["id"])
             crudo.unlink(missing_ok=True)
             continue
         try:
@@ -579,6 +585,9 @@ def fuentes_a_demanda(nicho: str, cuantos: int) -> int:
         if man_ok and r2io.put_file(final, key, "video/mp4"):
             man.append({"nicho": nicho, "clase": clase, "carpeta": tramo, "archivo": archivo,
                         "tid": v["id"], "txt": txt, "md5": h, "key": key})
+    # Para no volver a bajarlos mañana. Solo si la lista se pudo leer (si no, la pisaría).
+    if nuevos_descartes and isinstance(descartados, list):
+        r2io.put_json(DESCARTADOS, descartados + nuevos_descartes)
     if listas and man_ok and not r2io.put_json(MANIFIESTO, man):
         log.warning("No pude guardar el manifiesto: las fuentes de hoy sirven igual.")
     log.info("%s: %d fuentes nuevas listas a demanda.", nicho, listas)
