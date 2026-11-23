@@ -17,8 +17,17 @@ def _tikwm(url: str, out_dir: Path) -> Path | None:
     `play` = mp4 sin marca de agua (h264; `hdplay` a veces es h265). None si no se pudo."""
     import requests
     try:
-        r = requests.get("https://www.tikwm.com/api/", params={"url": url}, timeout=30)
-        d = r.json().get("data") or {}
+        for intento in range(3):   # tikwm limita ~1 pedido/s; a veces devuelve HTML
+            r = requests.post("https://www.tikwm.com/api/", data={"url": url}, timeout=30,
+                              headers={"user-agent": "Mozilla/5.0"})
+            try:
+                d = r.json().get("data") or {}
+                break
+            except ValueError:
+                log.warning("tikwm respondió %s sin JSON: %s", r.status_code, r.text[:100].replace("\n", " "))
+                time.sleep(5 * (intento + 1))
+        else:
+            return None
         play = d.get("play")
         if not play:
             log.warning("tikwm no devolvió video para %s: %s", url, r.text[:120])
