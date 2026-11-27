@@ -5,8 +5,8 @@ name: Precios por país
 # (tarea AgenteMarketing_precios, cada hora); desde el 27/11/2026 corre acá.
 
 on:
-  # schedule:
-  #  - cron: '5 * * * *'
+  schedule:
+    - cron: '5 * * * *'
   workflow_dispatch:
     inputs:
       sin_subir:
@@ -31,6 +31,17 @@ jobs:
         with:
           node-version: '20'
       - run: pip install -r requirements.txt phonenumbers playwright && python -m playwright install --with-deps chromium
+      # Se recorren ~200 países por tandas: el cursor (en qué país quedó) tiene que
+      # sobrevivir entre corridas. La caché de Actions es inmutable por clave, por eso
+      # se guarda una nueva por corrida y se restaura la última.
+      - uses: actions/cache@v4
+        with:
+          path: |
+            state/precios_cursor.json
+            analisis/paises_hotmart.json
+            analisis/precios_checkout_estado.json
+          key: precios-estado-${{ github.run_id }}
+          restore-keys: precios-estado-
       - run: python sync_precios.py --max-min 45 ${{ inputs.sin_subir && '--sin-subir' || '' }}
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
