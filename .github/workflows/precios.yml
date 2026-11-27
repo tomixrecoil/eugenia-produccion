@@ -1,0 +1,45 @@
+name: Precios por país
+
+# Lee el precio REAL de cada país dentro del checkout de Hotmart y lo sube a R2
+# (wa/precios_pais*.json), que es lo que cotiza el Worker. Antes corría en la PC
+# (tarea AgenteMarketing_precios, cada hora); desde el 27/11/2026 corre acá.
+
+on:
+  # schedule:
+  #  - cron: '5 * * * *'
+  workflow_dispatch:
+    inputs:
+      sin_subir:
+        description: 'Solo scrapear, no tocar R2'
+        type: boolean
+        default: false
+
+concurrency:
+  group: precios
+  cancel-in-progress: false
+
+jobs:
+  precios:
+    runs-on: ubuntu-latest
+    timeout-minutes: 55
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - run: pip install -r requirements.txt phonenumbers playwright && python -m playwright install --with-deps chromium
+      - run: python sync_precios.py --max-min 45 ${{ inputs.sin_subir && '--sin-subir' || '' }}
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      - if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: precios
+          path: |
+            analisis/precios_checkout*.json
+            logs/precios.log
+          if-no-files-found: ignore
