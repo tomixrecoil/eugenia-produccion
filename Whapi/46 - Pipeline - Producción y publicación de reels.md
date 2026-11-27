@@ -1,0 +1,33 @@
+---
+tags: [whapi, pipeline, reels, contexto]
+---
+
+# Pipeline — Producción y publicación de reels (contexto)
+
+No es WhatsApp, pero es **lo que genera los leads** que llegan al WhatsApp y comparte
+Worker, R2 y tokens. Resumen (✅ `eugenia-produccion`):
+
+```mermaid
+flowchart LR
+  A[01:00 ART\nCatalogar fuentes\nGitHub] --> B[02:00 ART\nProducir reels\nGitHub]
+  B -->|puerta R2| C[(stock/index.json\nreels/*.mp4)]
+  C --> D[Worker cron c/10 min\nhoras del nicho 6 y 18]
+  D --> E[Instagram / Facebook\nbotón WhatsApp + Comenta CULTIVO/BONSAI]
+  E --> F[Leads al WhatsApp\n→ Eugenia]
+```
+
+| Paso | Detalle |
+|---|---|
+| Fuentes | Videos de TikTok catalogados (`fuentes_nube.py`, `catalogar_fuente.py`); Gemini revisa |
+| Producción | `produccion_nube.py`: cupo diario repartido entre nichos (ver "Reparto"), hasta 20 en stock; voz **solo ElevenLabs** (Antonio → Antoni, 5 cuentas; Charon fuera desde 10/11: "no vende") → voz gratis; logo y mockup; **portada** = el cuadro más llamativo del video terminado (`src/portada.py`, 08/11) |
+| Copy | Gemini + bloque de oferta fijo + "💬 Comenta CULTIVO/BONSAI y te mando el link por privado 📩" |
+| Stock | `armar_stock.agregar()` sube `reels/<id>.mp4` + fila en `stock/index.json` |
+| Publicación | Worker (`publicarDeStock`): a las horas de `state/toggles.json` (default 6 y 18 ART) si `encolado` está prendido, solo en las redes con `fb`/`ig` prendidos; o la PC con `publisher.publicar_reel` (FB con botón WA, IG directo o encolado, YouTube) |
+| Aviso | `notify.whatsapp` → WhatsApp de Tomix |
+| Reparto (02/11) | `produccion_nube.repartir`: los cupos del día van primero al nicho con **menos** stock, máx. 5 por nicho y hasta 20 en stock |
+| Voz y subtítulos (02–04/11) | Se eliminó la prueba A/B (sistema A/B). Subtítulos estilo "viral #1": 1 palabra por pantalla, Baloo 2 ExtraBold 234 px, color `00EEFF`, minúsculas. Sincronía por palabra con **Whisper de Cloudflare** (`/whisper` de la puerta) |
+| Ajustes del panel → nube | `state/nichos/<nicho>.yaml` + bóveda cifrada (`panel/boveda_produccion.json`) |
+| YouTube (02/11) | `subir_youtube_nube.py` al final del workflow: sube lo que el Worker anotó en `stock/publicados.json`, solo nichos con `yt` prendido y canal conectado, máx. por corrida por cupo de YouTube |
+| Guiones (08/11) | Ganchos genéricos prohibidos en bonsái, formatos con dato concreto, referencia y estructuras copian los reels de junio; cada reel guarda su descripción y fuente |
+| Dependencias | `google-genai<3` (la 3.0 rompía la voz de Charon) |
+| Idempotencia | registro con `parcial=True` antes de publicar; `intentos` por plataforma |

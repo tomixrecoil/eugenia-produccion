@@ -1,0 +1,10 @@
+{
+  "name": "eugenia-whatsapp-referencia",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node test/simulacion.mjs",
+    "deploy": "wrangler deploy",
+    "tail": "wrangler tail"
+  }
+}
